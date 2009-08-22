@@ -1,0 +1,203 @@
+body {
+	background:#EEE;
+	font:12px "Helvetica Neue", sans-serif;
+}
+
+div#wrapper {
+	width:300px;
+	margin:80px auto;
+	position:relative;
+}
+
+form {
+	margin:0;
+}
+
+div#title {
+	height:30px;
+	background: url('../img/box_horizontal_parts.png') repeat-x left top;
+	position:relative;
+}
+
+h3#header {
+	display:block;
+	margin:0;
+	padding:4px 0 0 0;
+	text-align:center;
+	font-size:18px;
+	color:#005588;
+	text-shadow:rgba(255,255,255,0.75) 0px 1px 0px;
+}
+
+div.box_corner_top {
+	width:14px;
+	height:30px;
+	display:block;
+	position:absolute;
+	background: url('../img/box_corners.png') no-repeat left top;
+}
+
+div#box_corner_top_left { background-position: left top; }
+div#box_corner_top_right { background-position: -14px top; right:0; }
+
+div.box_footer {
+	display:block;
+	height:11px;
+	padding: 0;
+	margin: 0;
+	position:relative;
+	background: #FFF url('../img/box_horizontal_parts.png') repeat-x left -30px;
+}
+
+div.box_corner_bottom {
+	width:14px;
+	height:11px;
+	display:block;
+	position:absolute;
+	background: url('../img/box_corners.png') no-repeat left top;
+}
+
+div#box_corner_bottom_left { background-position: left -30px; }
+div#box_corner_bottom_right { background-position: -14px -30px; right:0; }
+
+#content {
+	padding:10px 20px 0 20px;
+	border:1px solid #B2B2B2;
+	border-top-style:none;
+	border-bottom-style:none;
+	background:white;
+}
+
+table {
+	width:250px;
+	font-size:13px;
+	padding-bottom:5px;
+}
+
+th {
+	width:1%;
+	font-weight:normal;
+	text-align:right;
+	padding-right:10px;
+}
+
+td input {
+	width:100%;
+	font-size:14px;
+	margin-bottom:3px;
+}
+
+input[type=text], input[type=password] {
+	border:1px solid #AAA;
+	padding:3px 2px;
+	background: #FCFCFC;
+	outline:1px solid white;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+	background-color:#DDDDFF;
+	border-color:#5555FF;
+	outline-color:#FFF;
+}
+
+input[type=submit] {
+	display:block;
+	margin:0 auto;
+	font-size:16px;
+}
+
+fieldset {
+	border:0;
+	padding:0;
+	margin:0;
+}
+
+input[type=submit] {
+	display:inline-block;
+	height:20px;
+	text-indent:-9999px;
+	outline:0;
+	border:0;
+	cursor:pointer;
+}
+
+input[type=submit]#login-button {
+	width:58px;
+	background:url('../img/buttons/button_login.png') no-repeat 0 0;
+}
+
+input[type=submit]#login-button:focus  { background-position:-116px 0; }
+input[type=submit]#login-button:active { background-position:-58px 0; }
+
+input[type=submit]#setup-db-button {
+	width:116px;
+	background:url('../img/buttons/button_setup_db.png') no-repeat 0 0;
+}
+
+input[type=submit]#setup-db-button:focus  { background-position:-232px 0; }
+input[type=submit]#setup-db-button:active { background-position:-116px 0; }
+
+input[type=submit]#resend-button {
+	width:123px;
+	background:url('../img/buttons/button_resetpass.png') no-repeat 0 0;
+}
+
+input[type=submit]#create-account-button {
+	width:123px;
+	background:url('../img/buttons/button_create_account.png') no-repeat 0 0;
+}
+input[type=submit]#create-account-button:focus  { background-position:-246px 0; }
+input[type=submit]#create-account-button:active { background-position:-123px 0; }
+
+input[type=submit]#resend-button {
+	width:123px;
+	background:url('../img/buttons/button_resetpass.png') no-repeat 0 0;
+}
+
+
+input[type=submit]#resend-button:focus  { background-position:-246px 0; }
+input[type=submit]#resend-button:active { background-position:-123px 0; }
+
+div#button_container { text-align:center; line-height:20px; margin-top:2px; }
+div#button_container a { color:#111; text-decoration:none; font-weight:normal; }
+div#button_container a:hover { text-decoration:underline; color:#555; }
+div#button_container a:active { color:#222; }
+
+div#bottom-links {
+	padding:8px 12px;
+	font-size:9px;
+}
+
+div#bottom-links a#forgot-link {
+	text-decoration:none;
+	color:#777;
+	float:right;
+	text-shadow:white 0px 1px 0px;
+}
+
+div#bottom-links a#forgot-link:hover {
+	color:#555;
+	text-decoration:underline;
+}
+
+div.message {
+	text-align:center;
+	margin-bottom:1em;
+	padding:5px;	
+}
+
+div.error {
+	background-color:#FFBBBB;
+	border:1px solid red;
+	color:#330000;
+}
+
+div.ok {
+	background-color:#BBFFBB;
+	border:1px solid #11BB11;
+	color:#004400;
+}
+
+#releases-by-shimmer {
+	border:0;
+}

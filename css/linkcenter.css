@@ -1,0 +1,67 @@
+#focus_content ul#linkcenter-tabs {
+	display:block;
+	height:21px;
+	margin:0 -10px;
+	padding:0;
+}
+
+#focus_content ul#linkcenter-tabs li.linkcenter-tab {
+	background:#DDD url('img/appsform_tab.png') no-repeat right top;
+	display:block;
+	float:left;
+	text-align:center;
+}
+
+/* Total Tab Width: 310px */
+#focus_content ul#linkcenter-tabs li#linkcenter-tabs-appcast   { width:80px; }
+#focus_content ul#linkcenter-tabs li#linkcenter-tabs-downloads { width:95px; }
+#focus_content ul#linkcenter-tabs li#linkcenter-tabs-notes     { width:70px; }
+#focus_content ul#linkcenter-tabs li#linkcenter-tabs-api       { width:65px; }
+
+#focus_content ul#linkcenter-tabs li.linkcenter-tab a {
+	background: url('img/appsform_tab.png') no-repeat right -21px;
+	display:block;
+	height:21px;
+	font: 11px 'Helvetica Neue', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+	color:#333;
+	text-decoration:none;
+	text-shadow:rgba(255,255,255,0.75) 0px 1px 0px;
+	vertical-align:middle;
+	line-height:21px;
+}
+#focus_content ul#linkcenter-tabs li.last a { background: none; }
+#focus_content ul#linkcenter-tabs li.active a { color: #222; }
+
+#focus_content ul#linkcenter-tabs li.linkcenter-tab:hover { background-color:#D3D3D3; }
+#focus_content ul#linkcenter-tabs li.active, #focus_content ul#linkcenter-tabs li.active:hover { background-color:#C6C6C6; }
+
+#focus_content ul#linkcenter-tabs li a img {
+	position:relative;
+	top:2px;
+	left:-3px;
+	border:0;
+}
+
+/* Cutoff area width: Total Tab Width (see above) - 2px */
+#focus_content div#linkcenter-pane-cutoff {
+	width:310px;
+	margin:0 -10px;
+	overflow:hidden;
+}
+
+/* Pane Holder Width: Cutoff area width (see above) * number of panes */
+#focus_content div#linkcenter-pane-holder {
+	width:1400px;
+}
+
+#focus_content div.linkcenter-pane {
+	padding:0 0 0 10px;
+	margin:0 10px 0 0;
+	width:290px;
+	float:left;
+}
+
+div.linkcenter-msg {
+	font-size:12px;
+	margin-top:5px;
+}

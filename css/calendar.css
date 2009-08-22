@@ -1,0 +1,62 @@
+table.cal {
+	border:1px solid #999;
+	border-top-color:#AAA;
+	font-size:10px;
+}
+
+table.cal th, table.cal td {
+	padding:4px 3px;
+	text-align:center;
+}
+	
+table.cal td {
+	border-bottom:1px solid #BBB;
+	border-right:1px dotted #AAA;
+	background:#EEE url('img/YellowListGradient.png') repeat-x left top;
+	cursor:pointer;
+}
+
+table.cal td:hover {
+	background-color:#FFFFBB;
+}
+
+table.cal td.today {
+	background-color: #66ff88;
+	border-bottom-style: solid;
+	border-bottom-color:#999;
+}
+
+table.cal td.chosen {
+	background-color: #99ddee;
+	border-bottom-style: solid;
+	border-bottom-color:#999;
+}
+
+table.cal tr:last-child td {
+	border-bottom-style:none;
+}
+
+table.cal td:last-child {
+	border-right-style:none;
+}
+
+table.cal td:first-child {
+	border-left-style:none;
+}
+
+table.cal th {
+	padding:3px 5px;
+	border-bottom:1px solid #AAA;
+	background:white;
+}
+
+table.cal td.other {
+	background:#AAA url('img/YellowListGradient.png') repeat-x left top;;
+}
+
+table.cal th.monthNav, table.cal th.calendarTitle {
+	cursor:pointer;
+	border-bottom-style:solid;
+	border-bottom-color:#CCC;
+	background:#EEE url('img/dot.png') repeat-x left top;
+}

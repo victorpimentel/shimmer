@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shimmertheme>
+
+	<details>
+		<name>Default</name>
+		<author email="bengummer@gmail.com">Ben Gummer</author>
+		<version>0.1</version>
+		<protected>true</protected>
+		<content>html</content>
+	</details>
+	
+	<layout>
+		<header>
+		<![CDATA[
+<html>
+	<head>
+		<title><<APP_NAME>> versions</title>
+		<style>
+			body {
+				font:12px Helvetica;
+				margin:0 20px;
+				padding:0 0 20px 0;
+			}
+			
+			h2.version-title {
+				display:block;
+				font-size:16px;
+				color:#444;
+				margin:15px 0 0 0;
+				padding:0;
+			}
+			
+			small.version-date {
+				display:block;
+				font-size:11px;
+				color:#777;
+				padding:0;
+				margin:5px 0 0 0;
+			}
+			
+			small.build-number {
+				font-weight:normal;
+				font-size:11px;
+				color:#777;
+				padding:0;
+				margin:5px 0 0 0;
+			}
+			
+			div.version-notes {
+				font-size:12px;
+				color:#222;
+				padding:0;
+				margin:10px 0 30px 0;
+			}
+			
+			div.version-notes ul ul {
+				padding-top:5px;
+			}
+			
+			div.version-notes ul li {
+				padding-bottom:3px;
+			}
+		</style>
+	</head>
+	<body>
+		]]>
+		</header>
+		
+		<release>
+		<![CDATA[
+		<h2 class="version-title"><<APP_NAME>> <<VERSION_NUMBER>> <small class="build-number">build <<BUILD_NUMBER>></small></h2>
+		<small class="version-date"><<RELEASE_DATE>></small>
+
+		<div class="version-notes"><<NOTES>></div>
+		]]>
+		</release>
+		
+		<footer>
+		<![CDATA[
+		<!-- Themed based on Potion Factory appcast: http://static.potionfactory.com/files/thehitlist/beta/rn.html -->
+		<img src="http://shimmerapp.com/images/releasesbyshimmer.gif" alt="Releases by Shimmer">
+	</body>
+</html>]]>
+		</footer>
+		
+		<nodata>
+		<![CDATA[
+			Version information not available.
+		]]>
+		</nodata>
+		
+		<addlater>
+			<![CDATA[
+				<small style="color:#999;display:block;clear:both;margin-top:10px;">Provided by Shimmer</small>
+			]]>
+		</addlater>
+	
+	</layout>
+	
+
+</shimmertheme>

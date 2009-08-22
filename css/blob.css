@@ -1,0 +1,56 @@
+#blob, #blob #leftcap, #blob #rightcap, #blob #mid-1, #blob #mid-2 {
+	z-index: 500;
+}
+
+#blob {
+	display:inline-block;
+	position:absolute;
+	padding:0;
+	height:23px;
+}
+
+#leftcap {
+	background: url('img/tooltip_sprite.png') no-repeat 0 0;
+	width:3px;
+	height:23px;
+	position:absolute;
+	left:0;
+	top:0;
+}
+
+#rightcap {
+	background: url('img/tooltip_sprite.png') no-repeat 0 -23px;
+	position:absolute;
+	right:-6px;
+	top:0;
+	width:3px;
+	height:23px;
+}
+
+#middle {
+	position:relative;
+	color:#FFF;
+	font:11px "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Arial, sans-serif;
+	background: url('img/tooltip_sprite.png') repeat-x 0 -46px;
+	padding:2px 5px 0 5px;
+	font-weight:normal;
+	top:0;
+	left:3px;
+	right:0;
+	height:21px;
+}
+
+#blobtext {
+	position:relative;
+	z-index:502;
+}
+
+#arrow {
+	position:absolute;
+	top:0;
+	background: url('img/tooltip_sprite.png') no-repeat 0 -69px;
+	height:23px;
+	z-index:501;
+	left:49%;
+	width:9px;
+}

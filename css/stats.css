@@ -1,0 +1,214 @@
+table.graph {
+	margin:0;
+	padding:0;
+	border-color: #DDD;
+}
+
+table.graph td {
+	/*padding:5px 2px 0 2px;*/
+}
+
+table.graph td.graph_data div.bar {
+	display:table;
+	background: #9cf url('img/GraphGradient.png') repeat-x left top;
+	font-size:1px;
+	-moz-border-radius-topright: 5px;
+	-moz-border-radius-topleft: 5px;
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+}
+
+table.graph td.graph_data:hover div.bar {
+	cursor: pointer;
+}
+
+table.graph td.graph_data div.filler {
+	display:table;
+	background:transparent;
+	font-size:1px;
+	border-color:transparent;
+}
+
+table.graph td.graph_data.hoverHighlight:hover div.filler {
+/*	background: #EEE;
+	border-color: #EEE;*/
+}
+
+table.graph td.graph_data div.bar, table.graph td {
+	border-color: #8888FF;
+}
+
+/*
+table.graph td.graph_data:hover div.bar {
+	border-color: #AAA;
+}
+*/
+table.graph th span {
+	display:block;
+	font-size:x-small;
+	font-family: 'Arial';
+	font-weight: normal;
+	text-align:center;
+	color:#555;
+	overflow:visible;
+}
+
+table.graph th, table.graph th span {
+	background:white;
+}
+
+table.graph th span.build-number-tiny, table.graph th span.version-number-text {
+	display:inline;
+}
+
+table.graph th span.build-number-tiny {
+	font-size:9px;
+	color:#999;
+}
+
+div#row2 table.graph th:hover span.version-number-text {
+	display:none;
+}
+
+table.stats {
+	/*width:100%;*/
+	margin: -10px 0 0 -10px;
+}
+
+table.stats th, table.stats td {
+	padding: 3px 10px;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Arial, sans-serif;
+	font-weight: 300;
+	font-size: 14px;
+}
+
+table.stats th {
+	font-family: "HelveticaNeue", "Helvetica Neue", Arial, sans-serif;
+	font-weight: normal;
+	text-align: left;
+	color: #222;
+	padding-bottom: 5px;
+}
+
+table.stats th:last-child {
+	/*Enable the below statement to force the last column to be pushed
+	to the right-hand side of the table*/
+	
+	/*width: 1%;*/
+}
+
+table.stats td {
+	font-size: 12px;
+}
+
+table.stats tr {
+	background: transparent;
+}
+
+table.stats tr:hover {
+	background: #EEE;
+}
+
+table.stats tr:first-child:hover {
+	background: white;
+}
+
+.needmorestatdata {
+	width:100%;
+	text-align:center;
+	font-size:12px;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Arial, sans-serif;
+}
+
+div.needmorestatdata {
+	padding-top: 10px;
+}
+
+div.guides_container, div.graph_table_container {
+	position:relative;
+	top:0;
+	left:0;
+	right:0;
+}
+
+div.guides_container {
+	z-index: 4;
+}
+
+div.graph_table_container {
+	z-index: 5;
+}
+
+div.guide_labels_container {
+	z-index: 6;
+}
+
+div.guides_container div {
+	height:1px;
+	background-color: #CCC;
+	position:absolute;
+	left:0;
+	right:0;
+	padding:0;
+	margin:0;
+}
+
+/*.box_data:hover div.guides_container div {
+	background-color: #CCC;
+}
+*/
+.guide_labels_container {
+	position: relative;
+	top: 0;
+	left:0;
+}
+
+.guide_labels_container div {
+	position: absolute;
+	left:0;
+	font-size: x-small;
+	color:#555;
+	background-color:white;
+	opacity: 0.8;
+	-webkit-transition: opacity .4s ease-in;
+}
+
+div.box_data:hover .guide_labels_container div {
+	opacity: 1.0;
+}
+
+.col_bottom_border {
+	height:1px;
+	background-color:#AAA;
+}
+
+div.box_data.nodata div.guide_labels_container {
+	display:none;
+}
+
+div.box_data.nodata table.graph {
+	opacity:0.4;
+}
+
+div.box_data.nodata table.graph td.graph_data div.bar {
+	background-color:#DDF4F4;
+	border-color:#9999FF;
+}
+
+div.box_data.nodata div.guides_container {
+	opacity:0.2;
+}
+
+div.graph_table_container div.graph_no_data_message {
+	position:absolute;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+	z-index:7;
+	background:url('img/nostatsmsg.png') no-repeat center center;
+}
+
+div#row2 div.graph_table_container div.graph_no_data_message {
+	opacity:0.8;
+}

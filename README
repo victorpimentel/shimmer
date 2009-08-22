@@ -1,0 +1,25 @@
+Shimmer
+http://shimmerapp.com
+** This software is considered to be in an early-beta stage. Please test it, but don't rely on it completely **
+
+------------------------------------------------
+INSTALLATION AND SETUP
+------------------------------------------------
+
+--- Step 1 ---
+Ready the User Guide, available at http://shimmerapp.com. It contains information on key concepts which will make using Shimmer much easier later on.
+
+--- Step 2 ---
+Upload Shimmer to your server. FTP everything included in the Shimmer download to a folder named 'shimmer' on your server.
+
+--- Step 3 ---
+Web-based setup: Go to http://yourapp.com/shimmer/ (use your own domain) and follow the setup instructions.
+
+--- Step 4 ---
+Start using Shimmer! Detailed information is available in the User Guide at http://shimmerapp.com
+
+------------------------------------------------
+REQUESTS AND REPORTS
+------------------------------------------------
+
+If you have something to say, use the support page (http://shimmerapp.com/support) to send a message.
