@@ -359,7 +359,7 @@ if ($Shimmer->didInstall()) {
 	<div id="copyright">
 		<a href="http://shimmerapp.com/support" class="right-link" id="report-bug" target="_new">Report a Bug</a>
 		<a href="?info" class="right-link" target="_new">Usage Data</a>
-		releases by <u>Shimmer v<?php echo $Shimmer->normalVersionNumber() ?> private beta</u>. &copy; 2009 Ben Gummer.
+		releases by <u>Shimmer v<?php echo $Shimmer->version . ($Shimmer->build>0 ? ' build ' . $Shimmer->build : ''); ?> private beta</u>. &copy; 2009 Ben Gummer.
 	</div>
 
 </div>

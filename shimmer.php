@@ -10,7 +10,8 @@ include('tablemanager.php');
 
 class Shimmer {
 	// The currently installer version. Divide by 100 to get the actual value.
-	var $version = 10;
+	var $version = '0.1';
+	var $build   = '0';
 
 	// Database connection details
 	var $database		= array(
@@ -150,7 +151,8 @@ class Shimmer {
 		$uuid = $this->uuid();
 		if ($uuid) {
 			$appcastURL .= "?uuid="               . $uuid;
-			$appcastURL .= "&appVersion="         . $this->normalVersionNumber();
+			$appcastURL .= "&appVersion="         . $this->version;
+			$appcastURL .= "&appBuild="           . $this->build;
 			$appcastURL .= "&phpversion="         . phpversion();
 			$appcastURL .= "&mq_gpc="             . (get_magic_quotes_gpc()?'1':'0');
 			$appcastURL .= "&mq_sybase="          . (ini_get('magic_quotes_sybase')?'1':'0');
@@ -172,22 +174,23 @@ class Shimmer {
 		if ($appcast) {
 			include_once('parseappcast.php');
 			$document = parse_appcast($appcast);
-			$latest = "0.0";
-			$build  = 0;
+			$latest      = "0.0";
+			$build = 0;
 			if (sizeof($document)>0) {
 				$allVersions = array_keys($document);
 				$latest = $allVersions[0];
-				$build  = $document[0]['build'];
+				$build  = $document[$latest]['build'];
 			}
-			echo "B$build B";
-			if (((float)$latest)*100 > $this->version) return true;
+			
+			$latestVersion = (float)$latest;
+			$latestBuild   = intval($build);
+			if ($latestVersion > $this->version) {
+				return true;
+			} else if ($latestVersion == $this->version && $latestBuild > $this->build) {
+				return true;
+			}
 		}
 		return false;
-	}
-	
-	// Returns a normal version number such as '0.1' instead of 10
-	function normalVersionNumber() {
-		return $this->version / 100;
 	}
 	
 	// Return the current MySQL version. If not found, returns '0'.
