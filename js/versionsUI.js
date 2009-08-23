@@ -204,7 +204,6 @@ versionsUI = {
 			for (var i=0; i<allRows.length; i++) {
 				var currentRow = allRows[i];
 				var currentRowCells = currentRow.select("div.version-version");
-				console.log(currentRowCells)
 				if (currentRowCells.length > 0) {
 					var currentRowVersion = currentRowCells[0].readAttribute('alt');
 					if (currentRowVersion == deletedVersion) {

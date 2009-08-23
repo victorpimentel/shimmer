@@ -149,7 +149,6 @@ calendar = {
 					}
 					calendar.scroll.throttle.tally = 0;
 				}
-				// console.log(calendar.scroll.throttle.lastDirection + ' - ' + calendar.scroll.throttle.tally);
 			}
 		},
 	

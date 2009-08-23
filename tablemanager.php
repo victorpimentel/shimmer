@@ -21,8 +21,8 @@ class TableManager {
 	
 	function createVersionTable($tableName) {
 		$sql = "CREATE TABLE IF NOT EXISTS `" . sql_safe($tableName) . "` (";
-		$sql .= " `version`			VARCHAR(20)		NOT NULL PRIMARY KEY";
-		$sql .= ", `build`			VARCHAR(20)		NOT NULL PRIMARY KEY";
+		$sql .= " `version`			VARCHAR(20)		NOT NULL";
+		$sql .= ", `build`			VARCHAR(20)		NOT NULL";
 		$sql .= ", `download`		VARCHAR(255)	NOT NULL";
 		$sql .= ", `bytes`			INT				NOT NULL";
 		$sql .= ", `download_count`	INT				NOT NULL";
@@ -33,6 +33,7 @@ class TableManager {
 		$sql .= ", `live`			BOOL			NOT NULL";
 		$sql .= ", `download_rate`	TEXT			NOT NULL";
 		$sql .= ", `user_rate`		TEXT			NOT NULL";
+		$sql .= ", PRIMARY KEY (`version`, `build`)";
 		$sql .= ") CHARACTER SET utf8 COLLATE utf8_unicode_ci";
 
 		$result = $this->Shimmer->query($sql);

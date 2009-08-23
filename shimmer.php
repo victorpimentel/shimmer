@@ -292,6 +292,7 @@ class Shimmer {
 			));
 		}
 		if ($result) return $result;
+		// echo "\n\n---" . $sql . "---\n" . mysql_error();
 		return false;
 	}
 	
