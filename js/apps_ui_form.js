@@ -660,7 +660,7 @@ appsUI.form = {
 			code += '          <tr>';
 			code += '            <th>Name<th>';
 			code += '            <td>';
-			code += '              <input type="text" class="graph-name" value="' + name + '" onkeyup="javascript:$(\'titletext_' + theParamNameID + '\').innerHTML=this.value;" />';
+			code += '              <input type="text" class="graph-name" id="' + theParamNameID + '" value="' + name + '" onkeyup="javascript:$(\'titletext_' + theParamNameID + '\').innerHTML=this.value;" />';
 
 			if (graphID) code += ' <input type="hidden" class="optional-graph-id" value="' + graphID + '" />';
 
