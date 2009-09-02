@@ -1,7 +1,6 @@
 <?php
 function prepareJsonStringForDecoding($jsonString) {
-	$jsonString = (get_magic_quotes_gpc() ? stripslashes($jsonString) : $jsonString);
-	$jsonString = preg_replace('/^"|"$/',"",$jsonString);
+	$jsonString = preg_replace('/^"|"$/',"",stripslashes($jsonString));
 	return (get_magic_quotes_gpc() ? stripslashes($jsonString) : $jsonString);
 }
 ?>
