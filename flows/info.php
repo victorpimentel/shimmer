@@ -118,10 +118,20 @@ foreach ($Shimmer->apps->list as $app) {
 <h3>Box Selections</h3>
 <?php
 foreach ($Shimmer->apps->list as $app) {
+	$knownGraphs = $Shimmer->stats->graphsForApp($app);
 	echo '<table cellpadding=0 cellspacing=0 class="float"><tr><th colspan="2">' . $app['name'] . ($app['usesSparkle'] ? '<img src="img/sparkle.png" class="sparkle-icon" title="App uses Sparkle" />' : '') . '</th></tr>';
 	$boxes = $Shimmer->apps->boxesForApp($app);
 	foreach ($boxes as $location => $graphID) {
-		if (!$graphID) $graphID = "Not Set";
+		if (!$graphID) {
+			$graphID = "Not Set";
+		} else {
+			foreach ($knownGraphs as $knownGraph) {
+				if ($knownGraph['id']==$graphID) {
+					$graphID = $knownGraph['name'] . " <small>($graphID)</small>";
+					break;
+				}
+			}
+		}
 		echo "<tr><td>$location</td><td>$graphID</td></tr>";
 	}
 	echo "</table>";
