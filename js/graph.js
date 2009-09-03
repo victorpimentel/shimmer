@@ -150,7 +150,7 @@ graph = {
 		
 		var growMorphs = new Array();
 		
-		columnGrows.each( function(growSet) {
+		if (columnGrows) columnGrows.each( function(growSet) {
 			growMorphs.push(new Effect.Morph( $(growSet.id), {
 				sync:true,
 				style:"height:" + growSet.height + "px;"
