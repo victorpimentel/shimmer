@@ -142,7 +142,7 @@ class AppManager {
 	}
 	
 	function createNew($name, $variant, $usesSparkle=true) {
-		if ($name && $variant) {
+		if ($name) {
 			if (!$this->appFromNameAndVariant($name, $variant)) {
 				$sql = "INSERT INTO `applications` (`name`, `variant`, `creation_date`, `uses_sparkle`) VALUES ('" . sql_safe($name) . "','" . sql_safe($variant) . "','" . sql_safe(date('Y-m-d')) . "'," . ($usesSparkle ? '1' : '0') . ")";
 				if ($this->Shimmer->query($sql)) {

@@ -275,22 +275,27 @@ apps = {
 	
 	handleMassDataGrab: function(theResponse) {
 		if (theResponse.noteslist) Shimmer.knownNotesThemes = theResponse.noteslist;
-		if (theResponse.allApps) apps.processReceivedAppList(theResponse.allApps, false);
+		
+		if (theResponse.allApps.length > 0) {
+			if (theResponse.allApps) apps.processReceivedAppList(theResponse.allApps, false);
 
-		if (theResponse.apps && theResponse.apps.length>0) {
-			var chosenApp = theResponse.apps[0];
+			if (theResponse.apps && theResponse.apps.length>0) {
+				var chosenApp = theResponse.apps[0];
 		
-			// Cache and Draw the Graph List for the chosen App
-			if (chosenApp.params && chosenApp.graphs) {
-				apps.appsHub.setGraphsAndParamsForAppWithID(chosenApp.id, chosenApp.params, chosenApp.graphs)
-				boxes.redrawAllGraphChoosersForCurrentApp();
+				// Cache and Draw the Graph List for the chosen App
+				if (chosenApp.params && chosenApp.graphs) {
+					apps.appsHub.setGraphsAndParamsForAppWithID(chosenApp.id, chosenApp.params, chosenApp.graphs)
+					boxes.redrawAllGraphChoosersForCurrentApp();
+				}
+		
+				// Reload the Versions table for the chosen App
+				if (chosenApp.allVersions) versions.reloadVersionsForApp_handleResponse(chosenApp.allVersions);
+		
+				// Draw the 4 Graphs for the chosen App
+				if (chosenApp.stats) processGraphData(chosenApp.stats);
 			}
-		
-			// Reload the Versions table for the chosen App
-			if (chosenApp.allVersions) versions.reloadVersionsForApp_handleResponse(chosenApp.allVersions);
-		
-			// Draw the 4 Graphs for the chosen App
-			if (chosenApp.stats) processGraphData(chosenApp.stats);
+		} else {
+			Shimmer.showWelcomeArea();
 		}
 	},
 	
