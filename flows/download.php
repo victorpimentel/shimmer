@@ -4,14 +4,16 @@ if (isset($_GET['loudandclear'])) {
 	echo 'LOUDANDCLEAR';
 	exit();
 }
-$appName	= $_GET['app'];
+$appName	= $_GET['appName'];
+$appVariant = $_GET['appVariant'];
+if (!isset($appVariant)) $appVariant = "";
 $version	= $_GET['version'];
 $build		= $_GET['build'];
 
 $paramCount = 1;
 if ( isset($version) && isset($appName) ) {
 	$paramCount += 2;
-	$app = $Shimmer->apps->app($appName);
+	$app = $Shimmer->apps->appFromNameAndVariant($appName, $appVariant);
 	if ($app) {
 		$versionSearch = array('onlyLive'=>true, 'version'=>$version);
 		if (isset($build) && strlen($build)>0) {
@@ -38,9 +40,8 @@ if ( isset($version) && isset($appName) ) {
 			if (isset($build) && strlen($build)>0) $updateSql .= " AND `build` = '" . $build . "'";
 			$Shimmer->query($updateSql);
 		} else echo 'Download link could not be found, because the version does not exist.';
+		$Shimmer->rates->processVersionRates($app['id']);
 	} else echo 'Download link could not be found, because the application table does not exist.<br>Please try again later.';
-	
-	$Shimmer->rates->processVersionRates($appName);
 }
 
 ?>

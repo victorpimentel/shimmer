@@ -5,44 +5,161 @@ apps = {
 	// Helpful variables
 	'hasReloadedAppList': false,
 	
-	// Stores the name and index of the currently displayed app
-	'currentApp': "",
-	'currentAppIndex': 0,
+	// Stores a list of known apps, and useful functions
+	appsHub: {
+		list: new Array(),
+		
+		addApp: function(id, info) {
+			apps.appsHub.list.push({id:id, info:info});
+		},
+		
+		appCount: function() {
+			return apps.appsHub.list.length;
+		},
+		
+		clearAppList: function() {
+			apps.appsHub.list.length = 0;
+		},
+		
+		// Returns an array of {id:x, name:x, variant:x} items
+		knownApps: function() {
+			var knownApps = [];
+			for (var i=0; i < apps.appsHub.list.length; i++) {
+				var app = apps.appsHub.list[i];
+				if (app.info.name.length>0) knownApps.push({
+					id:      app.id,
+					name:    app.info.name,
+					variant: app.info.variant
+				});
+			};
+			return knownApps;
+		},
+		
+		currentAppID: false,
+		
+		idForAppWithNameAndVariant: function(name, variant) {
+			for (var i=0; i < apps.appsHub.list.length; i++) {
+				if (apps.appsHub.list[i].info.name==name) {
+					if (variant.length>0) {
+						if (apps.appsHub.list[i].info.variant==variant) return apps.appsHub.list[i].id;
+					} else return apps.appsHub.list[i].id;
+				}
+			};
+		},
+		
+		dictionaryForAppWithID: function(id) {
+			for (var i=0; i < apps.appsHub.list.length; i++) {
+				if (apps.appsHub.list[i].id==id) return apps.appsHub.list[i];
+			};
+			return false;
+		},
+		
+		// Returns app name and variant
+		titleForAppWithID: function(id) {
+			var dict = apps.appsHub.dictionaryForAppWithID(id);
+			if (dict) {
+				var title = dict.info.name;
+				if (dict.info.variant.length>0) title += ' (' + dict.info.variant + ')';
+				return title;
+			}
+			return false;
+		},
+		
+		// Returns only the app name (no variant)
+		nameForAppWithID: function(id) {
+			var dict = apps.appsHub.dictionaryForAppWithID(id);
+			if (dict) {
+				return dict.info.name;
+			}
+			return false;
+		},
+		
+		appExistsWithID: function(id) {
+			return (apps.appsHub.dictionaryForAppWithID(id) ? true : false);
+		},
+		
+		setGraphsAndParamsForAppWithID: function(appID, params, graphs) {
+			for (var i=0; i < apps.appsHub.list.length; i++) {
+				if (apps.appsHub.list[i].id==appID) {
+					apps.appsHub.list[i].info.params = params;
+					apps.appsHub.list[i].info.graphs = graphs;
+					break;
+				}
+			};
+		},
+		
+		graphsForAppWithID: function(id) {
+			for (var i=0; i < apps.appsHub.list.length; i++) {
+				if (apps.appsHub.list[i].id==id) {					
+					return apps.appsHub.list[i].info.graphs;
+				}
+			};
+			return false;
+		}
+		
+	},
 	
-	knownApps: new Array(),
+	changeToApp: function(appID) {
+		if (!versions.isReloadingVersions) {
+			var theApp = apps.appsHub.dictionaryForAppWithID(appID);
+			if (theApp) {
+				apps.appsHub.currentAppID = theApp.id;
+				$('current_app_title').innerHTML = theApp.info.name + ' <small>' + theApp.info.count + ' users</small>';
+				versions.reloadVersionsForApp(apps.appsHub.currentAppID);
+				
+				var newHash  = theApp.id + ':' + theApp.info.name;
+				var newTitle = 'Shimmer: ' + theApp.info.name + (theApp.info.variant.length>0 ? (' (' + theApp.info.variant + ')') : '')
+				Shimmer.state.setPageTitle(newHash, newTitle);
+				
+				if (1==1 || reloadVersionsToo) {
+					new Ajax.Request('?ajax', {
+						method:'get',
+						parameters: {action:'get.data.many', appID:apps.appsHub.currentAppID, versions:true, graphs:true, graphdata:true},
+						onSuccess: function(transport) {
+							var response = transport.responseText;
+							var theResponse = JSON.parse(response);
+							if (theResponse.wasOK) {
+								apps.handleMassDataGrab(theResponse);
+								versionsUI.table.scroll.constrainer.reapplyConstraint();
+								versionsUI.table.scroll.slider.setTop(0);
+							}
+						}
+					});
+				}
+			} else if (apps.appsHub.appCount()>0) {
+				apps.changeToFirstApp();
+			} else if (apps.appsHub.appCount() == 0) {
+				apps.appsHub.currentAppID = false;
+				$('current_app_title').innerHTML = 'No Apps';
+				Shimmer.showWelcomeArea();
+			}
+		}
+	},
 	
-	knownAppNames: function() {
-		var names = [];
-		for (var i=0; i < apps.knownApps.length; i++) {
-			var name = apps.knownApps[i].name;
-			if (name && name.length>0) names.push(name);
+	changeToNextApp: function() {
+		for (var i=0; i < apps.appsHub.list.length; i++) {
+			if (apps.appsHub.list[i].id==apps.appsHub.currentAppID) {
+				if (i+1>=apps.appsHub.list.length) i=-1;
+				apps.changeToApp(apps.appsHub.list[i+1].id);
+				break;
+			}
 		};
-		return names;
 	},
 	
-	// Return the number of apps
-	'knownAppsCount': function() {
-		return this.knownApps.length;
-	},
-	
-	'appAtIndex': function(appIndex) {
-		if (this.knownAppsCount()>0 && this.knownAppsCount()>=appIndex) return this.knownApps[appIndex].name;
-		return "";
-	},
-	
-	'indexOfApp': function(appName) {
-		for (var i=0; i < this.knownApps.length; i++) {
-			if (this.knownApps[i].name==appName) return i;
+	changeToPreviousApp: function() {
+		for (var i=0; i < apps.appsHub.list.length; i++) {
+			if (apps.appsHub.list[i].id==apps.appsHub.currentAppID) {
+				if (i-1<0) i=apps.appsHub.list.length;
+				apps.changeToApp(apps.appsHub.list[i-1].id);
+				break;
+			}
 		};
-		return -1;
 	},
 	
-	'addKnownApp': function(appName) {
-		if (this.indexOfApp(appName)<0) this.knownApps.push({name:appName});
-	},
-	
-	'clearKnownApps': function() {
-		this.knownApps.length = 0;
+	changeToFirstApp: function() {
+		if (apps.appsHub.list.length>0) {
+			apps.changeToApp(apps.appsHub.list[0].id);
+		}// else show welcome message
 	},
 	
 	// Refreshes graphs every 5 minutes
@@ -53,29 +170,24 @@ apps = {
 		clearTimeout(this.refreshVersionsTimer);
 		new Ajax.Request('?ajax', {
 			parameters: {
-				action:		'get.data.many',
-				app:		apps.currentApp,
-				applist:	true,
-				graphs:		true
+				action:  'get.data.many',
+				appID:   apps.appsHub.currentAppID,
+				applist: true,
+				graphs:  true
 			},
 			method:'get',
 			onSuccess: function(transport) {
 				var response = transport.responseText;
 				var theResponse = JSON.parse(response);
-				if (theResponse.apps && theResponse.apps.length>0) {
-					// Update the cached Stat definition list
-					var theApp = theResponse.apps[0];
-					apps.updateAppCacheWithStatDefinitions(apps.currentAppIndex, theApp.params, theApp.graphs);
-
-					apps.processReceivedAppList(theResponse.allApps);
+				if (theResponse.wasOK) {
+					apps.handleMassDataGrab(theResponse);
 				}
-				boxes.redrawAllGraphChoosersForCurrentApp();
 			}
 		});
 	},
 	
 	reloadCurrentAppVersionsAndGraphs: function() {
-		apps.switchApp(apps.currentApp, true);
+		apps.changeToApp(apps.appsHub.currentAppID, true);
 	},
 	
 	// Generates new app lists from updated app list data
@@ -86,157 +198,45 @@ apps = {
 	},
 	
 	// Restarts the reload timer. Defaults to 5 minutes.
-	'refreshReloadTimer': function(delay) {
+	refreshReloadTimer: function(delay) {
 		if (typeof delay == "undefined") delay=5*60;
 		clearTimeout(this.refreshVersionsTimer);
-		this.refreshVersionsTimer = setTimeout("versions.reloadVersionsForApp(apps.currentApp)",delay*1000);
+		this.refreshVersionsTimer = setTimeout("versions.reloadVersionsForApp(apps.appsHub.currentAppID)", delay*1000);
 	},
 	
-	reloadStatDefinitionsForCurrentApp: function() {
-		if (this.currentApp.length>0) {
-			this.reloadStatDefinitionsForApp(this.currentApp);
-		}
-	},
-	
-	switchToAppAtIndex: function(theIndex, reloadVersionsToo) {
-		if (typeof reloadVersionsToo == "undefined") reloadVersionsToo = true;
-		if (versions.isReloadingVersions == false) {
-			if (this.knownAppsCount()>0) {
-				if (theIndex < 0) theIndex = 0;
-				var indexChanged = this.currentAppIndex != theIndex;
-				this.currentAppIndex = theIndex;
-				var appName = this.appAtIndex(theIndex);
-				this.switchApp(appName, reloadVersionsToo);
-			}
-		}
-	},
-	
-	switchApp: function(appName, reloadVersionsToo) {
-		if (versions.isReloadingVersions == false) {
-			if (typeof reloadVersionsToo == "undefined") reloadVersionsToo = true;
-			var didUpdateTitle = false;
-			var indexOfAppName = apps.indexOfApp(appName);
-			if (appName.length>0 && indexOfAppName>-1) {
-				apps.currentAppIndex = indexOfAppName;
-				if (appName != apps.currentApp) {
-					apps.currentApp = appName;
-					$('current_app_title').innerHTML = appName + ' <small>' + appsUI.storedUserCountForAppName(appName) + ' users</small>';
-				}
-				didUpdateTitle = true;
-				Shimmer.state.setPageTitle(appName);
-
-				if (reloadVersionsToo) {
-					var initialParameters = {action:'get.data.many', versions:true, graphs:true, graphdata:true};
-					var currentHash = Shimmer.state.getAppNameFromURL();
-					if (currentHash && currentHash.length>0) initialParameters.app = currentHash;
-
-					new Ajax.Request('?ajax', {
-						method:'get',
-						parameters: initialParameters,
-						onSuccess: function(transport) {
-							var response = transport.responseText;
-							var theResponse = JSON.parse(response);
-							if (theResponse.wasOK) {
-								if (theResponse.apps && theResponse.apps.length>0) {
-									chosenApp = theResponse.apps[0];
-									var chosenAppName = chosenApp.name;
-									var appIndex = apps.indexOfApp(chosenAppName);
-
-									// Cache and Draw the Graph List for the chosen App
-									apps.updateAppCacheWithStatDefinitions( appIndex, chosenApp.params, chosenApp.graphs );
-									boxes.redrawAllGraphChoosersForCurrentApp();
-
-									// Reload the Versions table for the chosen App
-									versions.reloadVersionsForApp_handleResponse(chosenApp.allVersions);
-
-									// Draw the 4 Graphs for the chosen App
-									processGraphData(chosenApp.stats);
-									
-									versionsUI.table.scroll.constrainer.reapplyConstraint();
-									versionsUI.table.scroll.slider.setTop(0);
-								}
-							}
-						}
-					});
-				}
-			} else if (apps.knownAppsCount()>0) {
-				didUpdateTitle = true;
-				var theApp = apps.appAtIndex(apps.currentAppIndex);
-				this.switchApp( apps.appAtIndex(apps.currentAppIndex) );
-			}
-			if (!didUpdateTitle && apps.knownAppsCount() == 0) {
-				apps.currentApp = "";
-				$('current_app_title').innerHTML = 'No Apps';
-				Shimmer.showWelcomeArea();
-			}
-		}
-	},
-	
-	reloadStatDefinitionsForApp: function(appName) {
-		var appIndex = this.indexOfApp(appName);
-		if (appIndex>-1) {
+	reloadStatDefinitionsForApp: function(appID) {
+		if (apps.appsHub.appExistsWithID(appID)) {
 			new Ajax.Request('?ajax', {
 				method:'get',
-				parameters: { action:'get.data.many', app:appName, graphs:true },
+				parameters: { action:'get.data.many', appID:appID, graphs:true },
 				onSuccess: function(transport) {
 					var response = transport.responseText;
 					var theResponse = JSON.parse(response);
 
-					if (theResponse.wasOK && theResponse.apps && theResponse.apps.length>0) {
-						var theApp = theResponse.apps[0];
-						apps.updateAppCacheWithStatDefinitions( appIndex, theApp.params, theApp.graphs );
-						boxes.redrawAllGraphChoosersForCurrentApp();
+					if (theResponse.wasOK) {
+						apps.handleMassDataGrab(theResponse);
 					}
 				}
 			});
 		}
 	},
 	
-	cachedStatDefinitionsForApp: function(appName) {
-		var appIndex = this.indexOfApp(appName);
-		if (appIndex>-1) {
-			var params = this.knownApps[appIndex].params;
-			var graphs = this.knownApps[appIndex].graphs;
-			if (params && graphs) return {params:params, graphs:graphs};
-		}
-		return false;
-	},
-	
-	updateAppCacheWithStatDefinitions: function(appIndex, params, graphs) {
-		this.knownApps[appIndex].params = params;
-		this.knownApps[appIndex].graphs = graphs;
-	},
-	
-	alterSelectedApp: function(direction) {
-		this.currentAppIndex = parseInt(this.currentAppIndex) + parseInt(direction);
-
-		var knownAppsCount = this.knownAppsCount();
-
-		if (this.currentAppIndex<0) {
-	    	this.currentAppIndex= knownAppsCount-1;
-		} else if (this.currentAppIndex > knownAppsCount-1 ) {
-			this.currentAppIndex = 0;
-		}
-
-		this.switchToAppAtIndex(apps.currentAppIndex);
-	},
-
 	appClicked: function(theDiv) {
-		var appDetails = appsUI.appNameFromClickedApplistItem(theDiv);
+		var appDetails = appsUI.appInfoFromClickedApplistItem(theDiv);
 		if (appDetails) {
-			var clickedAppName = appDetails.name;
-			this.switchApp(clickedAppName);
+			var clickedAppId = appDetails.id;
+			apps.changeToApp(clickedAppId);
 			versionsUI.hideNewVersionForm();
 		}
 	},
 	
-	deleteApp: function(appName) {
+	deleteApp: function(appID, appName) {
 		if (appName.replace(" ","").length>0) {
 			if ( confirm("Are you sure you want '" + appName + "' to be deleted?\nAll associated versions and appcasts will no longer function.") ) {
 				notify.update('Deleting app \'' + appName + '\'...',0);
 				new Ajax.Request('?ajax', {
 					method:'get',
-					parameters: {action: 'app.delete', app_name: appName},
+					parameters: {action: 'app.delete', appID: appID},
 					onSuccess: function(transport) {
 						var response = transport.responseText;
 						var theResponse = JSON.parse(response);
@@ -244,8 +244,7 @@ apps = {
 							apps.reloadAppList();
 							notify.update('App \'' + appName + '\' deleted', 5);
 						}
-					},
-					onFailure: function(){ alert('Something went wrong...') }
+					}
 				});
 			}
 		}
@@ -258,8 +257,8 @@ apps = {
 	
 	loadInitialData: function() {
 		var initialParameters = {action:'get.data.many', applist:true, versions:true, graphs:true, graphdata:true, noteslist:true};
-		var currentHash = Shimmer.state.getAppNameFromURL();
-		if (currentHash && currentHash.length>0) initialParameters.app = currentHash;
+		var initialId = Shimmer.state.getAppIdFromHash();
+		if (initialId) initialParameters.appID = initialId;
 
 		new Ajax.Request('?ajax', {
 			method:'get',
@@ -268,28 +267,31 @@ apps = {
 				var response = transport.responseText;
 				var theResponse = JSON.parse(response);
 				if (theResponse.wasOK) {
-					Shimmer.knownNotesThemes = theResponse.noteslist;
-					
-					apps.processReceivedAppList(theResponse.allApps, false);
-					
-					if (theResponse.apps && theResponse.apps.length>0) {
-						var chosenApp = theResponse.apps[0];
-						var chosenAppName = chosenApp.name;
-						var appIndex = apps.indexOfApp(chosenAppName);
-					
-						// Cache and Draw the Graph List for the chosen App
-						apps.updateAppCacheWithStatDefinitions(appIndex, chosenApp.params, chosenApp.graphs);
-						boxes.redrawAllGraphChoosersForCurrentApp();
-					
-						// Reload the Versions table for the chosen App
-						versions.reloadVersionsForApp_handleResponse(chosenApp.allVersions);
-					
-						// Draw the 4 Graphs for the chosen App
-						processGraphData(chosenApp.stats);
-					}
+					apps.handleMassDataGrab(theResponse);
 				}
 			}
 		});
+	},
+	
+	handleMassDataGrab: function(theResponse) {
+		if (theResponse.noteslist) Shimmer.knownNotesThemes = theResponse.noteslist;
+		if (theResponse.allApps) apps.processReceivedAppList(theResponse.allApps, false);
+
+		if (theResponse.apps && theResponse.apps.length>0) {
+			var chosenApp = theResponse.apps[0];
+		
+			// Cache and Draw the Graph List for the chosen App
+			if (chosenApp.params && chosenApp.graphs) {
+				apps.appsHub.setGraphsAndParamsForAppWithID(chosenApp.id, chosenApp.params, chosenApp.graphs)
+				boxes.redrawAllGraphChoosersForCurrentApp();
+			}
+		
+			// Reload the Versions table for the chosen App
+			if (chosenApp.allVersions) versions.reloadVersionsForApp_handleResponse(chosenApp.allVersions);
+		
+			// Draw the 4 Graphs for the chosen App
+			if (chosenApp.stats) processGraphData(chosenApp.stats);
+		}
 	},
 	
 	testMasks: function() {

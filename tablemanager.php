@@ -118,6 +118,7 @@ class TableManager {
 	function createAppsTable() {
 		$sql = "CREATE TABLE IF NOT EXISTS `applications` (";
 		$sql .= " `name`			VARCHAR(255)	NOT NULL";
+		$sql .= ", `variant`		VARCHAR(255)	NOT NULL";
 		$sql .= ", `id`				INT(11)			NOT NULL	AUTO_INCREMENT PRIMARY KEY";
 		$sql .= ", `table`			VARCHAR(255)	NOT NULL";
 		$sql .= ", `users`			VARCHAR(255)	NOT NULL";

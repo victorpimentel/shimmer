@@ -10,7 +10,7 @@ versionsUI = {
 	},
 	
 	clearNewVersionForm: function() {
-		Shimmer.util.setElementValue( $('addOrEditTitle'), apps.currentApp + " " + this.versionFieldCode("1.0",""));
+		Shimmer.util.setElementValue( $('addOrEditTitle'), apps.appsHub.nameForAppWithID(apps.appsHub.currentAppID) + " " + this.versionFieldCode("1.0",""));
 		Shimmer.util.setElementValue( $('field_hidden_ref_timestamp') ,'');
 		Shimmer.util.setElementValue( $('field_hidden_updated_timestamp') ,'');
 		Shimmer.util.setElementValue( $('field_version') ,'x.x');
@@ -79,7 +79,7 @@ versionsUI = {
 		} else {
 			$('versions_edit').hide();
 			Shimmer.blurAll();
-			if (versions.reloadVersionsOnCancel) versions.reloadVersionsForApp(apps.currentApp);
+			if (versions.reloadVersionsOnCancel) versions.reloadVersionsForApp(apps.appsHub.currentAppID);
 		}
 	},
 	
@@ -100,7 +100,7 @@ versionsUI = {
 		}
 	},
 	
-	openEditPanel: function(appName,timestamp, versionIndex) {
+	openEditPanel: function(appID, timestamp, versionIndex) {
 		if (versions.isLoadingVersionDetails==false && versions.isAnimatingNewVersionForm==false && $('field_hidden_ref_timestamp').value != timestamp) {
 			versions.isLoadingVersionDetails = true;
 			versions.selected_version = versionIndex;
@@ -110,7 +110,7 @@ versionsUI = {
 				method:'get',
 				parameters: {
 					action: 'app.version.get.values',
-					app_name: appName,
+					appID: appID,
 					timestamp: timestamp
 				},
 				onSuccess: versionsUI.openEditPanel_handleResponse,
@@ -135,9 +135,9 @@ versionsUI = {
 
 		calendar.setChosenDate(theDate);
 		calendar.newDraw();
-
+		
 		$('editDateLabel').innerHTML = dateString;
-		$('addOrEditTitle').innerHTML = '<span class="app">' + apps.currentApp + '</span> ' + versionsUI.versionFieldCode("0.0","");
+		$('addOrEditTitle').innerHTML = '<span class="app">' + apps.appsHub.nameForAppWithID(apps.appsHub.currentAppID) + '</span> ' + versionsUI.versionFieldCode("0.0","");
 
 		$('field_version').value              	  = versionInfo.version;
 		$('field_build').value                	  = versionInfo.build;
@@ -159,7 +159,7 @@ versionsUI = {
 	
 	setToggleSwitchState: function(stateBool,date) {
 		var toggleLive = $('toggle_live_icon');
-		var toggleLiveCode = 'javascript:versions.setVersionLive(\'' + apps.currentApp + '\',\'' + date + '\',' + (stateBool?0:1) + ');versionsUI.setToggleSwitchState(' + !stateBool + ',' + date + ');return false;';
+		var toggleLiveCode = 'javascript:versions.setVersionLive(\'' + apps.appsHub.currentAppID + '\',\'' + date + '\',' + (stateBool?0:1) + ');versionsUI.setToggleSwitchState(' + !stateBool + ',' + date + ');return false;';
 		toggleLive.writeAttribute('class','switchlive ' + (stateBool ? 'switchlive_On' : 'switchlive_Off') );
 		toggleLive.writeAttribute('onclick',toggleLiveCode);
 		toggleLive.writeAttribute('title',stateBool ? 'This version is live' : 'This version is not live');
@@ -177,14 +177,15 @@ versionsUI = {
 		return date + " " + monthFromNumber(month) + " " + year;
 	},
 	
-	deleteVersion: function(appName,timestamp,version) {
-		if ( confirm("Are you sure you want to delete " + appName + " " + version + "?") ) {
+	deleteVersion: function(appID, timestamp, version) {
+		var appName = apps.appsHub.titleForAppWithID(appID);
+		if (appName && confirm("Are you sure you want to delete " + appName + " " + version + "?") ) {
 			clearTimeout(apps.refreshVersionsTimer);
 			new Ajax.Request('?ajax', {
 				method:'get',
 				parameters: {
 								action:           'app.delete.version',
-								app_name:         appName,
+								appID:            appID,
 								delete_timestamp: timestamp,
 								delete_version:   version},
 				onSuccess: versionsUI.deleteVersion_handleResponse

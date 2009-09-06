@@ -2,23 +2,6 @@ var smallGraphHeight = 150;
 
 graphManager = { };
 
-function fetchDataForGraphLocations(locations) {
-	var now = new Date();
-	var timestamp = Math.round(now.getTime()/1000.0);
-
-    new Ajax.Request('?ajax&type=stat', {
-        method: 'get',
-        parameters: { action:"stats.id.many", app_name:apps.currentApp, locations:locations.join(';'), time:timestamp },
-        onSuccess: function(transport) {
-			var response = transport.responseText;
-			var theResponse = JSON.parse(response);
-			if (theResponse.wasOK) {
-				processGraphData(theResponse.stats);
-			}
-		}
-    });
-}
-
 function processGraphData(allStats) {
 	var allFades = new Array();
 	var drawLocations = new Array();
@@ -69,7 +52,7 @@ function processGraphData(allStats) {
 	
 	new Effect.Parallel(allFades, { duration: 0.5 } );
 	for (var i=0; i < drawLocations.length; i++) {
-		drawStat(drawLocations[i], true);
+		drawStat(drawLocations[i]);
 	};
 }
 
@@ -86,22 +69,23 @@ function statType(key) {
 	return ( (isSet(graphManager[key]) && isSet(graphManager[key].type) ) ? graphManager[key].type : 1 );
 }
 
-function drawStat(key, wantGrow) {
-	if (typeof wantGrow == "undefined") wantGrow = false;
-    statType(key) == 1 ? drawGraph(key, wantGrow) : drawTable(key);
+function drawStat(key, disableAnimation) {
+	if (typeof disableAnimation == "undefined") disableAnimation=false;
+	statType(key) == 1 ? drawGraph(key, disableAnimation) : drawTable(key);
 }
 
-function drawGraph(key, wantGrow) {
-    var entry = graphManager[key];
-    if (entry) {
-        var graphHeight = eval(entry.size.height);
-        var graphWidth  = eval(entry.size.width);
-        doGraph(entry.targ, graphHeight, graphWidth, entry.data, entry.conf.minColWidth, entry.conf.max, entry.conf.flipInput, entry.conf.flipOutput, entry.conf.axisData, wantGrow);
+function drawGraph(key, disableAnimation) {
+	if (typeof disableAnimation == "undefined") disableAnimation=false;
+	var entry = graphManager[key];
+	if (entry) {
+		var graphHeight = eval(entry.size.height);
+		var graphWidth  = eval(entry.size.width);
+		doGraph(entry.targ, graphHeight, graphWidth, entry.data, entry.conf.minColWidth, entry.conf.max, entry.conf.flipInput, entry.conf.flipOutput, entry.conf.axisData, disableAnimation);
 		if (entry.targ.indexOf('#r1b1')>-1) {
 			$('row1').setStyle({height:$('r1b1').getHeight()+'px'});
 		}
 		//$('row1').setStyle({height:$('r1b1').getHeight()+'px'});
-    } else document.title = "Entry not found for '" + key + "'.";
+	} else document.title = "Entry not found for '" + key + "'.";
 }
 
 function drawTable(key) {
@@ -111,7 +95,8 @@ function drawTable(key) {
     } else document.title = "Entry not found for '" + key + "'.";
 }
 
-function doGraph(targ,height,width,jsonData,minColWidth, max,flipInput,flipOutput,axisData,wantGrow) {
+function doGraph(targ,height,width,jsonData,minColWidth, max,flipInput,flipOutput,axisData,disableAnimation) {
+	if (typeof disableAnimation == "undefined") disableAnimation=false;
 	var target = $$(targ)[0];
     var dataSets = new Array();
 
@@ -145,7 +130,7 @@ function doGraph(targ,height,width,jsonData,minColWidth, max,flipInput,flipOutpu
                                     columnHorizontalPadding: 4,
                                     columnBorderWidth: 1,
 									minColWidth: minColWidth,
-									wantGrow: wantGrow,
+									disableAnimation: disableAnimation,
 
                                     // labels
                                     labelTopPadding: 5,
@@ -154,7 +139,7 @@ function doGraph(targ,height,width,jsonData,minColWidth, max,flipInput,flipOutpu
 									minColWidth: minColWidth
                      };
     // Create the graph
-    graph.create( target, graphData, uiOptions );
+    graph.create(target, graphData, uiOptions);
 
 }
 
@@ -196,12 +181,12 @@ function doStatsTable(targ,jsonData,flipInput,flipOutput,axisData) {
 	var target = $$(targ)[0];
 	
 	if (jsonData.length > 0) {
-	    var dataSets = new Array();
+		var dataSets = new Array();
 
 		if (flipInput == false) {
-	    	for (var i=0; i<jsonData.length; i++) dataSets.push( {name:jsonData[i].label, value:jsonData[i].value} );
+			for (var i=0; i<jsonData.length; i++) dataSets.push( {name:jsonData[i].label, value:jsonData[i].value} );
 		} else {
-	    	for (var i=jsonData.length-1; i>=0; i--) dataSets.push( {name:jsonData[i].label, value:jsonData[i].value} );
+			for (var i=jsonData.length-1; i>=0; i--) dataSets.push( {name:jsonData[i].label, value:jsonData[i].value} );
 		}
 
 	    if (!flipOutput) dataSets.reverse();
@@ -232,7 +217,7 @@ function toggleStatsType(targ) {
 	}
 }
 
-function redrawAllGraphsFromCache(animate) {
-	if (typeof animate == "undefined") animate=false;
-	for (var key in graphManager) drawStat(key, animate);
+function redrawAllGraphsFromCache(disableAnimation) {
+	if (typeof disableAnimation == "undefined") disableAnimation=false;
+	for (var key in graphManager) drawStat(key, disableAnimation);
 }

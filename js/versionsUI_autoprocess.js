@@ -30,7 +30,7 @@ versionsUI.autoload = {
 					method: 'get',
 					parameters: {
 						action: "process.go",
-						app:    apps.currentApp,
+						 appID: apps.appsHub.currentAppID,
 						source: theURL
 					},
 					onSuccess: function(transport) {

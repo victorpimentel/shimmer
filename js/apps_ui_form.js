@@ -9,12 +9,12 @@ appsUI.form = {
 	sparkleParameters: ["lang", "osVersion", "cputype", "cpu64bit", "cpusubtype", "model", "ncpu", "ramMB", "cpuFreqMHz"],
 	sparkleGraphs: ["sparkle-language", "sparkle-major-os", "sparkle-os", "sparkle-ram", "sparkle-cpu-count", "sparkle-cpu-type", "sparkle-cpu-frequency", "sparkle-computer-model"],
  
-	startForm: function(appName) {
-		if (appName) {
+	startForm: function(appId) {
+		if (appId) {
 			new Ajax.Request('?ajax', {
 				parameters: {
 					action:      'get.data.many',
-					app:         appName,
+					appID:       appId,
 					versions:    true,
 					graphs:      true,
 					masks:       true,
@@ -30,7 +30,7 @@ appsUI.form = {
 					if (theResponse.wasOK && theResponse.apps && theResponse.apps.length>0) {
 						var theApp = theResponse.apps[0];
 						appsUI.form.versionImporter.knownVersions = (theApp.allVersions ? theApp.allVersions : false);
-						appsUI.form.showForm(appName, theApp.params, theApp.graphs, theApp.notesTheme, theApp.masks.notes, theApp.masks.download, theApp.usesSparkle, false, theApp.identifier, theApp.keystatus);
+						appsUI.form.showForm(theApp.name, theApp.params, theApp.graphs, theApp.notesTheme, theApp.masks.notes, theApp.masks.download, theApp.usesSparkle, false, theApp.identifier, theApp.keystatus, theApp.variant, theApp.id);
 					}
 				}
 			});
@@ -67,7 +67,7 @@ appsUI.form = {
 		});
 	},
 	
-	showForm: function(appName, params, graphs, notesTheme, notesMask, downloadMask, usesSparkle, isNew, identifier, keyStatus) {
+	showForm: function(appName, params, graphs, notesTheme, notesMask, downloadMask, usesSparkle, isNew, identifier, keyStatus, variant, id) {
 		var code = "";
 		code += '  <ul id="appsform-tabs">';
 		code += '    <li class="appsform-tab active" id="appsform-tabs-appdetails"><a href="#AppDetails" onclick="appsUI.form.slideToPane(1);return false;"><img src="img/gear.png" /> App Details</a></li>';
@@ -75,6 +75,7 @@ appsUI.form = {
 		code += '    <li class="appsform-tab last" id="appsform-tabs-import"><a href="#Import" onclick="appsUI.form.slideToPane(3);return false;"><img src="img/tab_import.png" /> Import Versions</a></li>';
 		code += '  </ul>';
 		code += '  <input type="hidden" id="existingAppName" value="' + appName + '" />';
+		code += '  <input type="hidden" id="editingAppID" value="' + id + '" />';
 		code += '  <div id="stat_edit">';
 		code += '  <div id="appsform-pane-cutoff"><div id="appsform-pane-holder">';
 		
@@ -111,6 +112,7 @@ appsUI.form = {
 		}
 		
 		code += '        </select></td></tr>';
+		code += '        <tr><th>Variant</th><td><input type="text" id="app-variant" value="' + (variant ? variant : '') + '" />';
 		code += '      </table>';
 		
 		var pubSet  = false;
@@ -161,7 +163,7 @@ appsUI.form = {
 
 
 
-		code += '      <h6>URL Masks <a href="#TestMasks" id="test-masks-link" class="focus-right-link" onclick="apps.testMasks();return false;">Tests Masks...</a><span id="test-masks-message" style="display:none">Testing Masks...</span></h6>';
+		code += '      <h6>URL Masks <a href="#TestMasks" id="test-masks-link" class="focus-right-link" onclick="apps.testMasks();return false;">Test Masks...</a><span id="test-masks-message" style="display:none">Testing Masks...</span></h6>';
 		code += '      <table>';
 		code += '        <tr><th>Download</th><td><input type="text" id="download-mask" value="'	+ downloadMask	+ '" onkeyup="$(\'test-masks-message\').hide();$(\'test-masks-link\').show();" /></td></tr>';
 		code += '        <tr><th>Notes</th><td><input type="text" id="notes-mask" value="'	+ notesMask		+ '" onkeyup="$(\'test-masks-message\').hide();$(\'test-masks-link\').show();" /></td></tr>';
@@ -1057,6 +1059,7 @@ appsUI.form = {
 					parameters: {
 						action:			'app.save',
 						new_name:		appName,
+						variant:		$('app-variant').value,
 						parameters:		JSON.stringify(paramSets),
 						graphs:			JSON.stringify(graphSets),
 						notes: 			$('notes-theme-chooser').value,
@@ -1074,10 +1077,11 @@ appsUI.form = {
 						var theCreateResponse = JSON.parse(createResponse);
 						if (theCreateResponse.wasOK) {
 							notify.update('App created successfully', 5);
-							// apps.currentApp      = theCreateResponse.createdAppName;
-							apps.currentAppIndex = theCreateResponse.createdIndex;
+							apps.appsHub.currentAppID = theCreateResponse.createdID;
 							apps.processReceivedAppList(theCreateResponse.allApps, true);
 							focusBox.hide();
+						} else if (theCreateResponse.nameused) {
+							notify.update('That app name is already in use', 5);
 						}
 					}
 				});
@@ -1085,9 +1089,8 @@ appsUI.form = {
 		},
 		
 		saveEditedApp: function() {
-			var oldAppName = $('existingAppName').value;
 			var newAppName   = $('appedit_name').value;
-			if (apps.nameIsValid(oldAppName) && apps.nameIsValid(newAppName) && appsUI.form.params.checkForReservedUsage() && appsUI.form.params.checkForDuplicates()) {
+			if (apps.nameIsValid(newAppName) && appsUI.form.params.checkForReservedUsage() && appsUI.form.params.checkForDuplicates()) {
 				notify.update('Saving app...', 0);
 				var paramSets		= appsUI.form.params.readParamsFromForm();
 				var graphSets		= appsUI.form.graphs.readGraphsFromForm();
@@ -1096,8 +1099,9 @@ appsUI.form = {
 					method:'post',
 					parameters: {
 						action:			'app.save',
-						old_name:		oldAppName,
+						appID:			$('editingAppID').value,
 						new_name:		newAppName,
+						variant:		$('app-variant').value,
 						parameters:		JSON.stringify(paramSets),
 						graphs:			JSON.stringify(graphSets),
 						notes: 			$('notes-theme-chooser').value,
@@ -1122,6 +1126,8 @@ appsUI.form = {
 							}
 							focusBox.hide();
 							apps.reloadAppList();
+						} else if (theCreateResponse.nameused) {
+							notify.update('That app name is already in use', 5);
 						}
 					}
 				});

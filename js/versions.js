@@ -22,7 +22,7 @@ versions = {
 		if ( $('row1').visible() && !$('versions_edit').visible() ) {
 			var theTimestamp = $$("#versions_row_" + this.selected_version)[0].readAttribute("alt");
 			var isLive = $$("#versions_row_" + this.selected_version + " a.switchlive").length==0;
-			if (theTimestamp) versions.setVersionLive(apps.currentApp,theTimestamp,isLive?0:1);
+			if (theTimestamp) versions.setVersionLive(apps.appsHub.currentAppID,theTimestamp,isLive?0:1);
 		}
 	},
 	
@@ -61,13 +61,13 @@ versions = {
 		versionsUI.table.scroll.content.ensureRowIsShown(versions.selected_version);
 	},
 	
-	createNewVersion: function(appName,newVersion,newBuild,downloadURL,bytes,signature,notes) {
+	createNewVersion: function(appID,newVersion,newBuild,downloadURL,bytes,signature,notes) {
 		clearTimeout(apps.refreshVersionsTimer);
 		new Ajax.Request('?ajax', {
 			method:'post',
 			parameters: {
 							action:         'app.add.version',
-							app_name:       appName,
+							appID:          appID,
 							version_number: newVersion,
 							build_number:   newBuild,
 							download_url:   downloadURL,
@@ -75,21 +75,21 @@ versions = {
 							signature:      signature,
 							release_notes:  notes},
 			onSuccess: function(transport) {
-				versions.reloadVersionsForApp(apps.currentApp, true);
+				versions.reloadVersionsForApp(apps.appsHub.currentAppID, true);
 				versionsUI.hideNewVersionForm();
 				notify.update('New version added successfully', 10);
 			}
 	    });
 	},
 	
-	reloadVersionsForApp: function(appName,force) {
+	reloadVersionsForApp: function(appID,force) {
 		if (typeof force == "undefined") force=false;
 		if (this.isReloadingVersions == false && (!($('versions_edit').visible()) || force) ) {
 			clearTimeout(apps.refreshVersionsTimer);
 			this.isReloadingVersions = true;
 			new Ajax.Request('?ajax', {
 				method:'get',
-				parameters: {action:'get.data.many', app:appName, versions:true, graphdata:true},
+				parameters: {action:'get.data.many', appID:appID, versions:true, graphdata:true},
 				onSuccess: function(transport) {
 					var response = transport.responseText;
 					var theResponse = JSON.parse(response);
@@ -134,7 +134,7 @@ versions = {
 					var extraSeconds = theDate.getTimezoneOffset()*60;
 					dateString       = doRelativeDate(theDate.getFullYear(),theDate.getMonth()+1,theDate.getDate(),theDate.getHours(),theDate.getMinutes(),theDate.getSeconds()+extraSeconds);
 				} else {
-					dateString       = '<a href="#OnAir" class="switchlive publishNow" onclick="javascript:versions.setVersionLive(\'' + apps.currentApp + '\',\'' + serverSeconds + '\',1);return false;">Publish Now <img src="img/light_bulb.png" border="0"></a>';
+					dateString       = '<a href="#OnAir" class="switchlive publishNow" onclick="javascript:versions.setVersionLive(\'' + apps.appsHub.currentAppID + '\',\'' + serverSeconds + '\',1);return false;">Publish Now <img src="img/light_bulb.png" border="0"></a>';
 				}
 
 				var modifiedDate                    = new Date(parseInt(currentJsonVersion.modified)*1000);
@@ -148,7 +148,7 @@ versions = {
 				var userRate      = currentJsonVersion.userRate;
 				var downloadCount = currentJsonVersion.downloads;
 				var downloadRate  = currentJsonVersion.downloadRate;
-				var openCode      = 'onclick="javascript:void(versionsUI.openEditPanel(\'' + apps.currentApp + '\',\'' + serverSeconds + '\',\'' + i + '\'));return false;"';
+				var openCode      = 'onclick="javascript:void(versionsUI.openEditPanel(\'' + apps.appsHub.currentAppID + '\',\'' + serverSeconds + '\',\'' + i + '\'));return false;"';
 				
 				newCode += '<div class="version-cell version-version" alt="' + theVersion + '" ' + openCode + '>' + theVersion + (theBuild ? ('<small class="build-number-small">' + theBuild + '</small>') : '') + '</div>';
 				newCode += '<div class="version-cell version-published" ' + (isLive?openCode:'') + '>' + dateString + '</div>';
@@ -156,7 +156,7 @@ versions = {
 				newCode += '<div class="version-cell version-download-graph" ' + openCode + '> <canvas height="16" width="50" id="download_spark_' + i + '" class="sparkline"></canvas></div>';
 				newCode += '<div class="version-cell version-user-count" ' + openCode + '>' + userCount + '</div>';
 				newCode += '<div class="version-cell version-user-graph" ' + openCode + '> <canvas height="16" width="50" id="user_spark_' + i + '" class="sparkline"></canvas></div>';
-				newCode += '<div class="version-cell version-delete-cell"><a href="#DeleteVersion" onclick="javascript:void(versionsUI.deleteVersion(\'' + apps.currentApp + '\',\'' + serverSeconds + '\',\'' + theVersion + '\'));return false;" class="version_button delete_version_button" id="delete_version_button_' + i + '" title="Delete ' + apps.currentApp + ' ' + theVersion + '">&nbsp;</a></div>';
+				newCode += '<div class="version-cell version-delete-cell"><a href="#DeleteVersion" onclick="javascript:void(versionsUI.deleteVersion(\'' + apps.appsHub.currentAppID + '\',\'' + serverSeconds + '\',\'' + theVersion + '\'));return false;" class="version_button delete_version_button" id="delete_version_button_' + i + '" title="Delete ' + apps.currentApp + ' ' + theVersion + '">&nbsp;</a></div>';
 				newCode += '</div>';
 			}
 			newCode += '</div></div>';
@@ -206,18 +206,18 @@ versions = {
 		setTimeout('versionsUI.table.scroll.refresh()',1);
 		
 		if (!Shimmer.loaded) {
-			setTimeout('versionsUI.table.scroll.constrainer.setWantedRows(10);versionsUI.table.scroll.constrainer.go(true);',100);
+			setTimeout('versionsUI.table.scroll.constrainer.setWantedRows(10);versionsUI.table.scroll.constrainer.go();',100);
 		}
 		
 		Shimmer.loaded = true;
 	},
 	
-	saveEditedVersionInfo: function(appName,referenceTimestamp,newTimestamp,newVersionNumber,newBuildNumber,downloadURL,bytes,signature,notes) {
+	saveEditedVersionInfo: function(appID,referenceTimestamp,newTimestamp,newVersionNumber,newBuildNumber,downloadURL,bytes,signature,notes) {
 		new Ajax.Request('?ajax', {
 			method:'post',
 			parameters: {
 							action:              'app.update.version',
-							app_name:            appName,
+							appID:               appID,
 							reference_timestamp: referenceTimestamp,
 							new_timestamp:       newTimestamp,
 							version_number:      newVersionNumber,
@@ -238,7 +238,7 @@ versions = {
 		if ($('versions_edit').visible()) {
 			var referenceTimestamp = $('field_hidden_ref_timestamp').value;
 			var       newTimestamp = $('field_hidden_updated_timestamp').value;
-			var            appName = apps.currentApp;
+			var              appID = apps.appsHub.currentAppID;
 			var   newVersionNumber = $('field_version').value;
 			var     newBuildNumber = $('field_build').value;
 			var        downloadURL = $('field_url').value;
@@ -250,10 +250,10 @@ versions = {
 
 			if (referenceTimestamp.length>0) { //edit
 				if ($('versions_edit').visible()) {
-					versions.saveEditedVersionInfo(appName,referenceTimestamp,newTimestamp,newVersionNumber,newBuildNumber,downloadURL,bytes,signature,notes);
+					versions.saveEditedVersionInfo(appID,referenceTimestamp,newTimestamp,newVersionNumber,newBuildNumber,downloadURL,bytes,signature,notes);
 				}
 			} else { //new
-				versions.createNewVersion(appName,newVersionNumber,newBuildNumber,downloadURL,bytes,signature,notes);
+				versions.createNewVersion(appID,newVersionNumber,newBuildNumber,downloadURL,bytes,signature,notes);
 			}
 		}
 	},
@@ -267,18 +267,18 @@ versions = {
 		return null;
 	},
 	
-	setVersionLive: function(appName,timestamp,isLive) {
+	setVersionLive: function(appID,timestamp,isLive) {
 		if (this.isReloadingVersions==false && this.isFlippingLive==false) {
 			this.isFlippingLive = true;
 			new Ajax.Request('?ajax', {
 				method: 'post',
-				parameters: { action: "version.live.set", app_name:appName, ref_timestamp:timestamp, is_live:isLive },
+				parameters: { action: "version.live.set", appID:appID, ref_timestamp:timestamp, is_live:isLive },
 				onSuccess: function(transport) {
 					var response = transport.responseText;
 					var theResponse = JSON.parse(response);
 					if (theResponse.wasOK) {
 						if ( !$('versions_edit').visible() ) {
-							versions.reloadVersionsForApp(apps.currentApp);
+							versions.reloadVersionsForApp(apps.appsHub.currentAppID);
 						}
 					}
 					versions.isFlippingLive = false;

@@ -31,23 +31,21 @@ class StatManager {
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	function parametersForApp($app, $includeSparkle=false) {
-		$appName = $app['name'];
-		if (!isset($this->paramCache[$appName])) {
+		$appID = $app['id'];
+		if (!isset($this->paramCache[$appID])) {
 			$didRetrieve = false;
-			$sql = "SELECT `params` FROM `applications` WHERE `name`='" . sql_safe($appName) . "' LIMIT 1";
-			$result = $this->Shimmer->query($sql);
-			if ($result) {
-				$row = mysql_fetch_array($result);
+			$sql = "SELECT `params` FROM `applications` WHERE `id`='" . sql_safe($appID) . "' LIMIT 1";
+			if ($row = $this->Shimmer->querySelect($sql, true)) {
 				$paramString = $row['params'];
 				$unserializedList = unserialize($paramString);
 				if ($unserializedList!=false) {
 					$didRetrieve = true;
-					$this->paramCache[$appName] = $unserializedList;
+					$this->paramCache[$appID] = $unserializedList;
 				}
 			}
-			if (!$didRetrieve) $this->paramCache[$appName] = array();
+			if (!$didRetrieve) $this->paramCache[$appID] = array();
 		}
-		$returnArray = $this->paramCache[$appName];
+		$returnArray = $this->paramCache[$appID];
 		if ($includeSparkle && $app['usesSparkle']) {
 			$sparkleParams = $this->sparkleParameterDefinitions();
 			foreach ($sparkleParams as $sparkleParam) $returnArray[] = $sparkleParam;
@@ -234,10 +232,10 @@ class StatManager {
 	// Takes an array, and stores it in the 'applications' table
 	function saveParametersArrayForApp($app, $parameterArray) {
 		$updateValue = str_replace("'","\'",serialize($parameterArray));
-		$sql = "UPDATE `applications` SET `params`='" . sql_safe($updateValue) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+		$sql = "UPDATE `applications` SET `params`='" . sql_safe($updateValue) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 		$worked = $this->Shimmer->query($sql);
 		if ($worked) {
-			$this->paramCache[$app['name']] = $parameterArray;
+			$this->paramCache[$app['id']] = $parameterArray;
 			return true;
 		}
 		return false;
@@ -249,10 +247,10 @@ class StatManager {
 	///////////////////////////////////////////////////////////////////////////////
 
 	function graphsForApp($app, $includeSparkle=false) {
-		$appName = $app['name'];
+		$appID = $app['name'];
 		if (!isset($this->graphCache[$appName])) {
 			$didRetrieve = false;
-			$sql = "SELECT `graphs` FROM `applications` WHERE `name`='" . sql_safe($appName) . "' LIMIT 1";
+			$sql = "SELECT `graphs` FROM `applications` WHERE `id`='" . sql_safe($appID) . "' LIMIT 1";
 			$result = $this->Shimmer->query($sql);
 			if ($result) {
 				$row = mysql_fetch_array($result);
@@ -364,10 +362,10 @@ class StatManager {
 	// Takes an array, and stores it in the 'applications' table in serialized form
 	function saveGraphsArrayForApp($app, $graphArray) {
 		$updateValue = str_replace("'","\'",serialize($graphArray));
-		$sql = "UPDATE `applications` SET `graphs`='" . sql_safe($updateValue) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+		$sql = "UPDATE `applications` SET `graphs`='" . sql_safe($updateValue) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 		$worked = $this->Shimmer->query($sql);
 		if ($worked) {
-			$this->graphCache[$app['name']] = $graphArray;
+			$this->graphCache[$app['id']] = $graphArray;
 			return true;
 		}
 		return false;
@@ -439,7 +437,7 @@ class StatManager {
 				}
 				$boxData = str_replace("'","\'",serialize($boxes));
 				
-				$sql = "UPDATE `applications` SET `boxes`='" . sql_safe($boxData) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+				$sql = "UPDATE `applications` SET `boxes`='" . sql_safe($boxData) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 				$result = $this->Shimmer->query($sql);
 				if ($result) return true;
 			}

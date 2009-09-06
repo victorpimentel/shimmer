@@ -11,19 +11,18 @@ if ($action=="get.data.many") {
 	include_once('workers/worker_data.php');
 	$dataWorker = new DataWorker();
 	
-	// App list (same as get.applist)
 	if (isset($_GET['applist'])) $returnArray['allApps'] = $dataWorker->getAppList();
 	
 	if (isset($_GET['versions']) || isset($_GET['graphs']) || isset($_GET['graphdata']) || isset($_GET['masks']) || isset($_GET['notestheme']) || isset($_GET['usessparkle']) || isset($_GET['identifier']) || isset($_GET['keyStatus'])) {
 		$chosenApps = array();
-		if (isset($_GET['app'])) {
-			$requestedApp = $Shimmer->apps->app($_GET['app']);
+		if (isset($_GET['appID'])) {
+			$requestedApp = $Shimmer->apps->appFromID($_GET['appID']);
 			if ($requestedApp) array_push($chosenApps, $requestedApp);
-		} else if (isset($_GET['apps'])) {
-			$requestedApps = explode(',', $_GET['apps']);
+		} else if (isset($_GET['appIDs'])) {
+			$requestedApps = explode(',', $_GET['appIDs']);
 			if (sizeof($requestedApps)>0) {
 				foreach ($requestedApps as $requestedAppName) {
-					$requestedApp = $Shimmer->apps->app($requestedAppName);
+					$requestedApp = $Shimmer->apps->appFromID($requestedAppName);
 					if ($requestedApp) array_push($chosenApps, $requestedApp);
 				}
 			}
@@ -37,7 +36,11 @@ if ($action=="get.data.many") {
 		if (sizeof($chosenApps)>0) {
 			$finalApps = array();
 			foreach ($chosenApps as $chosenApp) {
-				$currentAppSet = array('name'=>$chosenApp['name']);
+				$currentAppSet = array(
+					'id'      => $chosenApp['id'],
+					'name'    => $chosenApp['name'],
+					'variant' => $chosenApp['variant']
+				);
 				
 				if (isset($_GET['versions'])) {
 
@@ -88,7 +91,7 @@ if ($action=="get.data.many") {
 					include_once($Shimmer->base . "/workers/worker_stat.php");
 					if (!isset($statWorker)) $statWorker = new StatWorker();
 					$locations = array('r1b1', 'r2b1', 'r2b2', 'r2b3');
-					$currentAppSet['stats'] = $statWorker->performStatLookup($chosenApp['name'], $locations);
+					$currentAppSet['stats'] = $statWorker->performStatLookup($chosenApp['id'], $locations);
 				}
 				
 				if (isset($_GET['keyStatus'])) {
@@ -132,8 +135,8 @@ if ($action=="get.data.many") {
 	$returnArray['wasOK'] = true;
 	
 } else if ( $action == "app.add.version" ) {
-	$appName = $_POST['app_name'];
-	$app = $Shimmer->apps->app($appName);
+	$appID = $_POST['appID'];
+	$app = $Shimmer->apps->appFromID($appID);
 	if ($app) {
 		$newVersion		=	$_POST['version_number'];
 		$newBuild		=	$_POST['build_number'];
@@ -163,8 +166,8 @@ if ($action=="get.data.many") {
 		} else $returnArray['reason'] = "Please supply version and build parameters";
 	} else $returnArray['reason'] = "Supplied app does not exist";
 } else if ( $action == "app.update.version" ) {
-	$appName = $_POST['app_name'];
-	$app = $Shimmer->apps->app($appName);
+	$appID = $_POST['appID'];
+	$app = $Shimmer->apps->appFromID($appID);
 	if ($app) {
 		$ref_timestamp = $_POST['reference_timestamp'];
 		$new_timestamp = $_POST['new_timestamp'];
@@ -197,8 +200,8 @@ if ($action=="get.data.many") {
 		} else $returnArray['reason'] = "Reference version does not exist";
 	} else $returnArray['reason'] = "Supplied app does not exist";
 } else if ( $action == "app.delete.version" ) {
-	$appName = $_GET['app_name'];
-	$app = $Shimmer->apps->app($appName);
+	$appID = $_GET['appID'];
+	$app = $Shimmer->apps->appFromID($appID);
 	if ($app) {
 		$deleteTimestamp = $_GET['delete_timestamp'];
 		$deleteVersion   = $_GET['delete_version'];
@@ -208,16 +211,17 @@ if ($action=="get.data.many") {
 		} else $returnArray['reason'] = "Version delete failed";
 	} else $returnArray['reason'] = "Supplied app name does not exist";
 } else if ( $action == "app.delete" ) {
-	$appName = $_GET['app_name'];
-	$existingApp = $Shimmer->apps->app($appName);
+	$appID = $_GET['appID'];
+	$existingApp = $Shimmer->apps->appFromID($appID);
 	if ($existingApp) {
 		if ( $Shimmer->apps->delete($existingApp) ) {
 			$returnArray['wasOK'] = true;
 		} else $returnArray['reason'] = "Delete app failed";
-	} else $returnArray['reason'] = "App already exists";
+	} else $returnArray['reason'] = "App does not exist";
 } else if ( $action == "app.save" ) {
+	$appID          = $_POST['appID'];
 	$newName		= $_POST['new_name'];
-	$oldName		= $_POST['old_name'];
+	$variant		= $_POST['variant'];
 	$paramJson		= $_POST['parameters'];
 	$graphJson		= $_POST['graphs'];
 	$notesTheme		= $_POST['notes'];
@@ -233,150 +237,149 @@ if ($action=="get.data.many") {
 	$graphs = json_decode(prepareJsonStringForDecoding($graphJson), true);
 
 	if (isset($newName) && isset($params) && isset($graphs)) {
-		$newAppAlreadyExists = $Shimmer->apps->app($newName) ? true : false;
-		$renameFailed = false;
 		
-		// If no app already exist with the new name
-		if (!$newAppAlreadyExists) {	
-			// If we want to rename an old app
-			if (isset($oldName)) {
-				$oldApp = $Shimmer->apps->app($oldName);
-				
-				// If an app actually exists with the old app's name
-				if ($oldApp) {
-					$newApp = $Shimmer->apps->rename($oldApp, $newName);
-					if ($newApp==false) {
-						$renameFailed = true;
-						$returnArray['reason'] = 'Could not rename the app';
-					}
-				}
+		$appReference = false;
+		
+		// UPDATING AN APP
+		if (isset($appID)) {
+			$existingApp = $Shimmer->apps->appFromNameAndVariant($newName, $variant);
+			if ($existingApp==false || $existingApp['id']==$appID) {
+				// App name and Variant are ok, so rename be referencing appID
+				$appReference = $Shimmer->apps->renameAppWithID($appID, $newName, $variant);
+
+				if (!$appReference) $returnArray['reason'] = 'Could not rename the app';
+			} else {
+				$returnArray['nameused'] = true;
+				$returnArray['reason'] = "That app name is already in use";
+			}
+			
+		// NEW APP
+		} else {
+			//check for name/variant collisions
+			$existingApp = $Shimmer->apps->appFromNameAndVariant($newName, $variant);
+			if ($existingApp==false) {
+				$appReference = $Shimmer->apps->createNew($newName, $variant, $usesSparkle);
+			} else {
+				$returnArray['nameused'] = true;
+				$returnArray['reason'] = "That app name is already in use";
 			}
 		}
+		
+		if ($appReference) {
+			// The app was saved or renamed. Anything else is a bonus.
+			$returnArray['wasOK'] = true;
 			
-		// If the app rename failed (still passes if no rename was requested)
-		if ($renameFailed==false) {
-			// Check validity of Parameters and Graphs
 			$paramsValid = $Shimmer->stats->paramsAreValid($params);
 			$graphsValid = $Shimmer->stats->graphsAreValid($graphs);
 		
 			if ($paramsValid && $graphsValid) {
-				if (!isset($newApp) && !$newAppAlreadyExists) $newApp = $Shimmer->apps->create($newName, $usesSparkle);
-				if (!isset($newApp)) $newApp = $Shimmer->apps->app($newName);
+				// Add Parameters and Graphs
+				if ($Shimmer->stats->setParametersAndGraphsForApp($appReference, $params, $graphs)) {
+					// Update the 'Uses Sparkle' flag
+					$Shimmer->apps->setAppUsesSparkle($appReference, $usesSparkle);
+					$Shimmer->apps->setAppIdentifier($appReference, $identifier);
+					
+					$Shimmer->apps->setNotesThemeForApp($appReference, $notesTheme);
+					$Shimmer->apps->setMasksForApp($appReference, array(
+						'downloadMask' => $downloadMask,
+						'notesMask'    => $notesMask
+					));
+					
+					// Try to read the uploaded DSA keys from the tmp/ folder
+					$Shimmer->apps->loadSignatureKeysForApp($appReference, array(
+						'public'  => (strlen($publicKeySess)  >0 ? $publicKeySess  : false),
+						'private' => (strlen($privateKeySess) >0 ? $privateKeySess : false),
+					));
+					$returnArray['wasOK'] = true;
+					
+					// Todo reference base for proper include location
+					include_once('workers/worker_data.php');
+					$dataWorker = new DataWorker();
+					$refreshedAppList = $dataWorker->getAppList();
+					$returnArray['allApps'] = $refreshedAppList;
 
-				if ($newApp) {
-					// Add Parameters and Graphs
-					if ($Shimmer->stats->setParametersAndGraphsForApp($newApp, $params, $graphs)) {
-						// Update the 'Uses Sparkle' flag
-						$Shimmer->apps->setAppUsesSparkle($newApp, $usesSparkle);
-						$Shimmer->apps->setAppIdentifier($newApp, $identifier);
-						
-						$Shimmer->apps->setNotesThemeForApp($newApp, $notesTheme);
-						$Shimmer->apps->setMasksForApp($newApp, array(
-							'downloadMask'	=> $downloadMask,
-							'notesMask'		=> $notesMask
-						));
-						
-						// Try to read the uploaded DSA keys from the tmp/ folder
-						$Shimmer->apps->loadSignatureKeysForApp($newApp, array(
-							'public'  => (strlen($publicKeySess)  >0 ? $publicKeySess  : false),
-							'private' => (strlen($privateKeySess) >0 ? $privateKeySess : false),
-						));
-						$returnArray['wasOK'] = true;
-						
-						// Todo reference base for proper include location
-						include_once('workers/worker_data.php');
-						$dataWorker = new DataWorker();
-						$refreshedAppList = $dataWorker->getAppList();
-						$returnArray['allApps'] = $refreshedAppList;
-						$createdIndex = 0;
-						foreach ($refreshedAppList as $key => $loopApp) {
-							if ($loopApp['name']==$newName) {
-								$createdIndex = $key;
-								break;
-							}
-						}
-						$returnArray['createdIndex']   = $createdIndex;
-						$returnArray['createdAppName'] = $newName;
-						
-						// Try to import versions for appcast. Still return OK even if it doesn't work.
-						$appcast		= $_POST['appcastURL'];
-						$versionsString	= $_POST['importVersions'];
-						if (isset($appcast) && isset($versionsString) && $Shimmer->isURL($appcast)) {
-							$chosenVersions = json_decode(prepareJsonStringForDecoding($versionsString), false);
-							if ($chosenVersions && sizeof($chosenVersions)>0) {
-								$theXml = $Shimmer->readURL($appcast);
-								if ($theXml) {
-									$existingVersions = $Shimmer->versions->flatVersions($newApp);
-									if ($existingVersions==false) $existingVersions = array();
-									$versions = parse_appcast($theXml);
-									$usedTimestamps = array();
-									$worked = true;
-									$importCount = 0;
-									foreach( $versions as $version => $details ) {
-										if ( in_array($version,$chosenVersions) && !in_array($version, $existingVersions) ) {
-											$versionNumber	= $version;
-											$buildNumber	= $details['build'];
-											$downloadURL	= $details['url'];
-											if (strlen($details['notes'])>0) {
-												$notes = $details['notes'];
-											} else if (strlen($details['noteslink'])>0) {
-												$notes = $Shimmer->readURL($details['noteslink']);
+					$returnArray['createdID']      = $appReference['id'];
+					$returnArray['createdAppName'] = $appReference['name'];
+					
+					// Try to import versions for appcast. Still return OK even if it doesn't work.
+					$appcast		= $_POST['appcastURL'];
+					$versionsString	= $_POST['importVersions'];
+					if (isset($appcast) && isset($versionsString) && $Shimmer->isURL($appcast)) {
+						$chosenVersions = json_decode(prepareJsonStringForDecoding($versionsString), false);
+						if ($chosenVersions && sizeof($chosenVersions)>0) {
+							$theXml = $Shimmer->readURL($appcast);
+							if ($theXml) {
+								$existingVersions = $Shimmer->versions->flatVersions($appReference);
+								if ($existingVersions==false) $existingVersions = array();
+								$versions = parse_appcast($theXml);
+								$usedTimestamps = array();
+								$worked = true;
+								$importCount = 0;
+								foreach( $versions as $version => $details ) {
+									if ( in_array($version,$chosenVersions) && !in_array($version, $existingVersions) ) {
+										$versionNumber	= $version;
+										$buildNumber	= $details['build'];
+										$downloadURL	= $details['url'];
+										if (strlen($details['notes'])>0) {
+											$notes = $details['notes'];
+										} else if (strlen($details['noteslink'])>0) {
+											$notes = $Shimmer->readURL($details['noteslink']);
+										} else {
+											$notes = "";
+										}
+										$signature	= $details['signature'];
+										$size		= $details['size'];
+										
+										// Work out the timestamp for the version. This gets a bit tricky
+										// if all appcast dates are the same, or don't exist at all.
+										$date = $details['date'];
+										if ($date) {
+											while (in_array($date,$usedTimestamps)) $date = intval($date)-10;												
+										} else {
+											$usedCount = sizeof($usedTimestamps);
+											if ($usedCount>0) {
+												$mostAncientDate = $usedTimestamps[$usedCount-1];
 											} else {
-												$notes = "";
+												$mostAncientDate = time();
 											}
-											$signature	= $details['signature'];
-											$size		= $details['size'];
-											
-											// Work out the timestamp for the version. This gets a bit tricky
-											// if all appcast dates are the same, or don't exist at all.
-											$date = $details['date'];
-											if ($date) {
-												while (in_array($date,$usedTimestamps)) $date = intval($date)-10;												
-											} else {
-												$usedCount = sizeof($usedTimestamps);
-												if ($usedCount>0) {
-													$mostAncientDate = $usedTimestamps[$usedCount-1];
-												} else {
-													$mostAncientDate = time();
-												}
-												$date = intval($mostAncientDate)-10;
-											}
-											array_push($usedTimestamps,$date);
+											$date = intval($mostAncientDate)-10;
+										}
+										array_push($usedTimestamps,$date);
 
-											$addWorked = $Shimmer->versions->add($newApp, array(
-												'version'			=>	strval($versionNumber),
-												'build'				=>	strval($buildNumber),
-												'download'			=>	strval($downloadURL),
-												'size'				=>	strval($size),
-												'signature'			=>	strval($signature),
-												'notes'				=>	preg_replace("/.*<body[^>]*>|<\/body>.*/si", "", strval($notes)),
-												'published'			=>	strval($date),
-												'modified'			=>	strval($date),
-											));
-											if ( !$addWorked ) {
-												$worked = false;
-											} else {
-												$importCount++;
-											}
+										$addWorked = $Shimmer->versions->add($appReference, array(
+											'version'			=>	strval($versionNumber),
+											'build'				=>	strval($buildNumber),
+											'download'			=>	strval($downloadURL),
+											'size'				=>	strval($size),
+											'signature'			=>	strval($signature),
+											'notes'				=>	preg_replace("/.*<body[^>]*>|<\/body>.*/si", "", strval($notes)),
+											'published'			=>	strval($date),
+											'modified'			=>	strval($date),
+										));
+										if ( !$addWorked ) {
+											$worked = false;
+										} else {
+											$importCount++;
 										}
 									}
-									$returnArray['importCount']	= $importCount;
 								}
+								$returnArray['importCount']	= $importCount;
 							}
 						}
-						
-					} else {
-						$returnArray['reason'] = "Could not create Parameters and Graphs";
-						$returnArray['error']  = mysql_error();
-						$returnArray['params']  = $params;
 					}
-				} else $returnArray['reason'] = "Could not create application";
+					
+				} else {
+					$returnArray['reason'] = "Could not create Parameters and Graphs";
+					$returnArray['error']  = mysql_error();
+					$returnArray['params']  = $params;
+				}
 			} else {
 				$returnArray['reason'] = 'Some of the supplied values were not valid';
 				$returnArray['paramsValid'] = $paramsValid;
 				$returnArray['graphsValid'] = $graphsValid;
 			}	
-		}
+
+		}		
 	}	
 } else if ($action=="appcast.getversions") {
 	$appcastURL = $_POST['url'];
@@ -390,57 +393,6 @@ if ($action=="get.data.many") {
 			$returnArray['versions'] = $allVersions;
 		} else $returnArray['reason'] = 'XML could not be loaded';
 	} else $returnArray['reason'] = 'Supplied appcast URL was not valid';
-} else if ($action=="app.importversions") {
-	$appcastURL     = $_POST['url'];
-	$wantedVersions = $_POST['versions'];
-	$appName        = $_POST['appname'];
-	$app = $Shimmer->apps->app($appName);
-	if ($app) {
-		if ( isset($appcastURL) && strlen($appcastURL)>0 ) {
-			$theXml = $Shimmer->readURL($appcastURL);
-			if ($theXml) {
-				$versions = parse_appcast($theXml);
-				$pickedVersions = explode(';',$wantedVersions);
-				$usedTimestamps = array();
-				$worked = true;
-				foreach( $versions as $version => $details ) {
-					if ( in_array($version,$pickedVersions) ) {
-						$versionNumber	= $version;
-						$buildNumber	= $details['build'];
-						$downloadURL	= $details['url'];
-						if (strlen($details['notes'])>0) {
-							$notes = $details['notes'];
-						} else if (strlen($details['noteslink'])>0) {
-							$notes = $Shimmer->readURL($details['noteslink']);
-						} else {
-							$notes = "";
-						}
-						$signature	= $details['signature'];
-						$size		= $details['size'];
-						$date		= $details['date'];
-						while (in_array($date,$usedTimestamps)) $date = intval($date)-10;
-						array_push($usedTimestamps,$date);
-
-						$addWorked = $Shimmer->versions->add($app, array(
-							'version'			=>	strval($versionNumber),
-							'build'				=>	strval($buildNumber),
-							'download'			=>	strval($downloadURL),
-							'size'				=>	strval($size),
-							'signature'			=>	strval($signature),
-							'notes'				=>	strval($notes),
-							'published'			=>	strval($date),
-							'modified'			=>	strval($date),
-						));
-						if ( !$addWorked ) $worked = false;
-					}
-				}
-				if (!$worked) {
-					$returnArray['reason'] = "Could not add new versions from appcast";
-					$returnArray['error'] = mysql_error();
-				} else $returnArray['wasOK'] = true;
-			} else $returnArray['reason'] = "Could not parse appcast";
-		} else $returnArray['reason'] = "Required parameters were not supplied";
-	} else $returnArray['reason'] = "Supplied app does not exist";
 } else if ( $action == "apps.reorder" ) {
 	$sortDataString = $_POST['sortdata'];
 	parse_str($sortDataString);
@@ -467,11 +419,11 @@ if ($action=="get.data.many") {
 		}
 	}
 } else if ( $action == "version.live.set" ) {
-	$appName = $_POST['app_name'];
+	$appID = $_POST['appID'];
 	$timestamp = $_POST['ref_timestamp'];
 	$isLive = $_POST['is_live'];
-	if ( isset($appName) && isset($timestamp) && isset($isLive) ) {
-		$app = $Shimmer->apps->app($appName);
+	if ( isset($appID) && isset($timestamp) && isset($isLive) ) {
+		$app = $Shimmer->apps->appFromID($appID);
 		if ($app) {
 			$liveInt = $isLive=="1" ? 1 : 0;
 			$sql = "UPDATE `" . sql_safe($app['versions_table']) . "` SET `live`=$liveInt WHERE `published`='" . sql_safe($timestamp) . "'";
@@ -481,11 +433,11 @@ if ($action=="get.data.many") {
 		} else $returnArray['reason'] = "App does not exist";
 	}
 } else if ( $action == "app.version.get.values" ) {
-	$appName = $_GET['app_name'];
+	$appID = $_GET['appID'];
 	$timestamp = $_GET['timestamp'];
 	
-	if ( strlen($appName)>0 && strlen($timestamp)>0 ) {
-		$app = $Shimmer->apps->app($appName);
+	if ( strlen($appID)>0 && strlen($timestamp)>0 ) {
+		$app = $Shimmer->apps->appFromID($appID);
 		if ($app) {
 			$versions = $Shimmer->versions->versions($app,array(
 				'timestamp'			=>	$timestamp,

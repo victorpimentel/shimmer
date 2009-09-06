@@ -58,13 +58,12 @@ backup = {
 		setApps: function(apps) {
 			var code = '<table id="select-backup-apps-table" cellpadding="0" cellspacing="0">';
 			for (var i=0; i<apps.length; i++) {
-				var currentApp		= apps[i];
-				var backupAppName	= currentApp.name;
-				var disabled		= !currentApp.valid;
+				var currentApp = apps[i];
+				var disabled   = !currentApp.valid;
 				
 				code += '<tr class="' + (i%2!=0 ? 'alternate' : '') + (i==0 ? ' first' : '') + '">';
-				code += '  <td width="1%" class="checkbox"><input type="checkbox" name="backup_' + backupAppName + '" id="backup_' + backupAppName + '" class="select_app_checkbox" value="' + backupAppName + '" ' + (disabled ? 'DISABLED' : 'CHECKED') + '></td>';
-				code += '  <td class="import-label' + (disabled ? ' disabled' : '') + '"><label for="backup_' + backupAppName + '">' + backupAppName + '</label></td>';
+				code += '  <td width="1%" class="checkbox"><input type="checkbox" name="backup_' + currentApp.id + '" id="backup_' + currentApp.id + '" class="select_app_checkbox" value="' + currentApp.id + '" ' + (disabled ? 'DISABLED' : 'CHECKED') + '></td>';
+				code += '  <td class="import-label' + (disabled ? ' disabled' : '') + '"><label for="backup_' + currentApp.id + '">' + currentApp.name + (currentApp.variant ? (' <small>' + currentApp.variant + '</small>') : '') + '</label></td>';
 				code += '</tr>';
 			}
 			code += '</table>';

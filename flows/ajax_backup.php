@@ -43,8 +43,10 @@ if ( $action == "backup.upload") {
 							$allApps = array();
 							foreach ($backup->app as $currentApp) {
 								array_push($allApps,array(
-									'name'	=> strval($currentApp['name']),
-									'valid'	=> ($Shimmer->apps->app($currentApp['name']) ? false : true)
+									'id'      => strval($currentApp['id']),
+									'name'    => strval($currentApp['name']),
+									'variant' => strval($currentApp['variant']),
+									'valid'   => ($Shimmer->apps->appFromID($currentApp['id']) ? false : true)
 								));
 							}
 							if (count($allApps)>0) {

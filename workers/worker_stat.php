@@ -8,11 +8,11 @@ class StatWorker {
 		$this->Shimmer =& $Shimmer;
 	}
 	
-	function performStatLookup($appName, $locations) {
+	function performStatLookup($appID, $locations) {
 		$cutoff = date('Y-m-d', time()-(86400*30));
 
 		$statsHolder = array();
-		$app = $this->Shimmer->apps->app($appName);
+		$app = $this->Shimmer->apps->appFromID($appID);
 		if ($app) {
 			$userCount	= $this->Shimmer->stats->appUsers($app);
 			$graphs		= $this->Shimmer->stats->graphsForApp($app, true);

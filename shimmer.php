@@ -292,13 +292,24 @@ class Shimmer {
 			));
 		}
 		if ($result) return $result;
-		// echo "\n\n---" . $sql . "---\n" . mysql_error();
+		return false;
+	}
+	
+	// Returns an array of associative arrays
+	function querySelect($sql, $returnFirstRow=false) {
+		$result = $this->query($sql);
+		if ($result) {
+			$return = array();
+			while ($row = mysql_fetch_assoc($result)) array_push($return, $row);
+			if ($returnFirstRow && count($return)>0) return $return[0];
+			return $return;
+		}
 		return false;
 	}
 	
 	// When in debug mode, prints out all previous SQL queries
 	function dumpQueries() {
-		if (isset($_GET['debug']) && $this->auth->authenticated) {
+		if (count($this->allQueries)>0 && (isset($_GET['debug']) && $this->auth->authenticated)) {
 			echo '<table border="0" style="font-size:12px;margin-top:0.5em;">';
 			foreach ($this->allQueries as $query) {
 				echo "<tr>";

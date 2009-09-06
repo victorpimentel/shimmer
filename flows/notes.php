@@ -4,7 +4,9 @@ if (isset($_GET['loudandclear'])) {
 	echo 'LOUDANDCLEAR';
 	exit();
 }
-$appName		= $_GET['app'];
+$appName		= $_GET['appName'];
+$appVariant = $_GET['appVariant'];
+if (!isset($appVariant)) $appVariant = "";
 $versionLimit	= $_GET['limit'];
 $targetVersion	= $_GET['version'];
 $targetBuild	= $_GET['build'];
@@ -12,7 +14,7 @@ $minVersion		= $_GET['appVersion'];
 if (!isset($templateName)) $templateName = "default";
 
 if ( isset($appName) ) {
-	$app = $Shimmer->apps->app($appName);
+	$app = $Shimmer->apps->appFromNameAndVariant($appName, $appVariant);
 	if ($app) {
 		$whereConditions = array("onlyLive"=>true);
 		$versionsRestricted = false;
@@ -60,7 +62,6 @@ if ( isset($appName) ) {
 					echo trim($headerTemplate);
 					
 					foreach ($versions as $version) {
-						
 						$versionTemplate = $themeTree->layout->release;
 						$versionTemplate = str_replace(	"<<APP_NAME>>",			$appName,								$versionTemplate);
 						$versionTemplate = str_replace(	"<<VERSION_NUMBER>>",	$version['version'],					$versionTemplate);

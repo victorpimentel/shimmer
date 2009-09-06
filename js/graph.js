@@ -13,7 +13,7 @@ graph = {
 				dataSets.push( {name:"", value:i*20} );
 			};
 			
-			graphData =	{
+			graphData = {
 							axis: { vertical:"", horizontal:"", relationship:"" },
 							dataSets: dataSets
 						};
@@ -115,12 +115,11 @@ graph = {
 
 //				if (fillerHeight>10) graphHTML += '<div style="border-style:solid;border-width:1px;' + columnWidthStyle + 'height:' + fillerHeight + 'px;" class="filler">&nbsp;</div>';
 				if (columnHeight> 0) {
-					var startHeight = '1';
-					if (!displayOptions.wantGrow) startHeight = columnHeight;
+					var startHeight = (displayOptions.disableAnimation ? columnHeight : '1');
 					graphHTML += '<div id="' + columnID + '" style="' + columnWidthStyle + 'height:' + startHeight + 'px;border-style:solid;border-width:' + displayOptions.columnBorderWidth + 'px;border-bottom-style:none;' + (columnHeight<5 ? 'background-image:none;' : '') + '" class="bar" alt="' + columnTitle + '"';
 				 	if (!displayOptions.disableBlob) graphHTML += ' onmouseover="javascript:Shimmer.blob.show(this);" onmouseout="javascript:Shimmer.blob.hide();"';
 					graphHTML += '>&nbsp;</div>';
-					if (displayOptions.wantGrow) columnGrows.push({id:columnID, height:columnHeight});
+					if (!displayOptions.disableAnimation) columnGrows.push({id:columnID, height:columnHeight});
 				}
 
 				graphHTML += '</td>';
@@ -149,6 +148,7 @@ graph = {
 		container.innerHTML = graphHTML;
 		
 		var growMorphs = new Array();
+		
 		
 		if (columnGrows) columnGrows.each( function(growSet) {
 			growMorphs.push(new Effect.Morph( $(growSet.id), {

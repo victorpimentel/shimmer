@@ -39,16 +39,12 @@ class BackupWorker {
 		}
 	}
 
-	function tryToImportBackup($currentApp,$selectedAppNames) {
-		$appName = $currentApp['name'];
-		if ($appName && in_array($appName,$selectedAppNames)) {
-			$lowercaseAppName = $this->Shimmer->apps->convertTableName($appName);
-			$currentVersionsTable = "versions_" . $lowercaseAppName;
-			$currentUsersTable = "users_" . $lowercaseAppName;
-
-			if ( !$this->Shimmer->apps->app($appName) ) {
+	function tryToImportBackup($currentApp,$selectedAppIDs) {
+		$appID = $currentApp['id'];
+		if ($appID && in_array($appID,$selectedAppIDs)) {
+			if ( !$this->Shimmer->apps->appFromID($appID) ) {
 				$usesSparkle = ($currentApp['usesSparkle']!="1" ? false : true);
-				$newApp = $this->Shimmer->apps->create($appName, $usesSparkle);
+				$newApp = $this->Shimmer->apps->createNew($currentApp['name'], $currentApp['variant'], $usesSparkle);
 				if ($newApp) {
 					$paramData = strval($currentApp->parameters);
 					if ($paramData) $params = unserialize($paramData);

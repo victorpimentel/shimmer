@@ -1,15 +1,16 @@
 <?php
 if (!defined('Shimmer')) header('Location:/');
-include_once('completemask.php');
-$appName							= $_GET['appName'];
-if (strlen($appName)==0) $appName	= $_GET['app'];
-$versionLimit						= $_GET['limit'];
-$targetVersion						= $_GET['targetVersion'];
-$minVersion							= $_GET['appVersion'];
+$appName    = $_GET['appName'];
+$appVariant = $_GET['appVariant'];
+if (!isset($appVariant)) $appVariant = "";
 
 if ( isset($appName) ) {
-	$app = $Shimmer->apps->app($appName);
+	$app = $Shimmer->apps->appFromNameAndVariant($appName, $appVariant);
 	if ($app) {
+		$versionLimit	= $_GET['limit'];
+		$targetVersion	= $_GET['targetVersion'];
+		$minVersion		= $_GET['appVersion'];
+		
 		$whereConditions = array("onlyLive"=>true);
 		if ( !isset($_GET['all']) ) $whereConditions['limit'] = 1;
 		$versions = $Shimmer->versions->versions($app, $whereConditions);
@@ -29,6 +30,7 @@ if ( isset($appName) ) {
 					} else {
 						$sparkleVersionCode = 'sparkle:version="' . $versionNumber . '"';
 					}
+					include_once('completemask.php');
 					$notesLink		= completeMask($notesMask,		$app, $version);
 					$downloadLink	= completeMask($downloadMask,	$app, $version);
 				
@@ -62,14 +64,11 @@ if ( isset($appName) ) {
 				if ($sparkleParams) refreshUser($app,$sparkleParams,$columnRestrictions);
 			}
 		}
+		
+		$Shimmer->rates->processVersionRates($app['id']);
+		
 	} else echo 'The app name you have supplied does not exist';
-} else echo 'Please supply an app name using the \'app\' parameter';
-
-// After everything is done process the version rates. This processing should be run
-// whenever Shimmer gets a chance because there is no other way to ensure that the
-// processing will occur at least once each day.
-
-$Shimmer->rates->processVersionRates($appName);
+} else echo 'Please supply an app name using the \'appName\' (and optional `appVariant`) parameters';
 
 function refreshUser($app,$sparkleParams,$columnRestrictions) {
 	global $Shimmer;

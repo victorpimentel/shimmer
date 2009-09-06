@@ -2,19 +2,18 @@
 
 boxes = {
 	redrawAllGraphChoosersForCurrentApp: function() {
-		var appName = apps.currentApp;
-		var cachedStatDefinitions = apps.cachedStatDefinitionsForApp(appName);
-		if (!cachedStatDefinitions) {
-			apps.reloadStatDefinitionsForApp(appName);
-			
+		var appID = apps.appsHub.currentAppID;
+		var graphDefinitions = apps.appsHub.graphsForAppWithID(appID);
+		if (!graphDefinitions) {
+			apps.reloadStatDefinitionsForApp(appID);
 		} else {
 			// Used for all 'Graphs' Parameters
 			var optionsCode = '<li alt="downloads">Downloads</li><li alt="users">Users</li>';
 			// Used for all User-Created Parameters
 			var customOptionsCode = "";
 			// Append a new <li> to the appropriate string
-			for (var i=0; i < cachedStatDefinitions.graphs.length; i++) {
-				var currentGraph = cachedStatDefinitions.graphs[i];
+			for (var i=0; i < graphDefinitions.length; i++) {
+				var currentGraph = graphDefinitions[i];
 				if (currentGraph.stock) {
 					optionsCode += '<li alt="' + currentGraph.id + '">' + currentGraph.name + '</li>'
 				} else {
@@ -38,7 +37,7 @@ boxes = {
 				$$('#' + theLocation + ' .box_title span.menu_title_text')[0].innerHTML = sender.innerHTML;
 				new Ajax.Request('?ajax&type=pref', {
 					method: 'post',
-					parameters: { action:"prefs.box.update", box:theLocation, id:theId, app:apps.currentApp },
+					parameters: { action:"prefs.box.update", box:theLocation, id:theId, appID:apps.appsHub.currentAppID },
 					onSuccess: function(transport) {
 						var response = transport.responseText;
 						var theResponse = JSON.parse(response);

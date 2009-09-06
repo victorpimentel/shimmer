@@ -19,9 +19,9 @@ if ($action == "preferences.save") {
 	if (isset($backupSession) && strlen($backupSession)>0 && isset($backupChoicesData)) {
 		include_once('jsonhelper.php');
 		include($Shimmer->base . "/workers/worker_backup.php");
-		$selectedAppNames = json_decode(prepareJsonStringForDecoding($backupChoicesData), false);
+		$selectedAppIDs = json_decode(prepareJsonStringForDecoding($backupChoicesData), false);
 		$backupWorker = new BackupWorker();
-		$backupWorker->import($backupSession, $selectedAppNames);
+		$backupWorker->import($backupSession, $selectedAppIDs);
 	}
 	$returnArray['wasOK'] = true;
 } else if ($action=="preferences.get.values") {
@@ -40,21 +40,20 @@ if ($action == "preferences.save") {
 	$returnArray['wasOK'] = true;
 
 } else if ( $action == "prefs.box.update" ) {
-	$appName	= $_POST['app'];
-	if (isset($appName)) {
-		$app = $Shimmer->apps->app($appName);
+	$appID = $_POST['appID'];
+	if (isset($appID)) {
+		$app = $Shimmer->apps->appFromID($appID);
 		if ($app) {
 			$box		= $_POST['box'];
 			$graphId	= $_POST['id'];
 			if (strlen($box)>0 && strlen($graphId)>0) {
 				$Shimmer->stats->setBoxTargetForApp($app, $box, $graphId);
 				$returnArray['wasOK'] = true;
-				if (isset($appName)) {
-					include($Shimmer->base . "/workers/worker_stat.php");
-					$statWorker = new StatWorker();
-					$locations = array($box);
-					$returnArray['stats'] = $statWorker->performStatLookup($app['name'], $locations);
-				}
+
+				include($Shimmer->base . "/workers/worker_stat.php");
+				$statWorker = new StatWorker();
+				$locations = array($box);
+				$returnArray['stats'] = $statWorker->performStatLookup($app['id'], $locations);
 			} else $returnArray['reason'] = "One of the supplied values is zero-length.";
 		} else $returnArray['reason'] = "App does not exist.";
 	}

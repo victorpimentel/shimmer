@@ -240,14 +240,13 @@ versionsUI.table = {
 				versionsUI.table.scroll.constrainer.go();
 			},
 
-			go: function(animate) {
-				if (typeof animate == "undefined") animate=false;
+			go: function() {
 				if (versionsUI.table.scroll.constrainer.wantedRows>0) {
 					var rHeight = versionsUI.table.scroll.constrainer.getRowHeight();
 					var fullHeight = rHeight * versionsUI.table.scroll.constrainer.wantedRows;
 					versionsUI.table.scroll.components.container.setStyle({height:fullHeight+'px'});
 					versionsUI.table.scroll.refresh();
-					redrawAllGraphsFromCache(animate);
+					redrawAllGraphsFromCache();
 				}
 			},
 

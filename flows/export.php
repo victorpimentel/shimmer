@@ -18,6 +18,7 @@ if ( $exportFormat=="xml" ) {
 			
 			// Add attributes to the current <app> element
 			$expApp->addAttribute("name",        strval($app['name']));
+			$expApp->addAttribute("variant",     strval($app['variant']));
 			$expApp->addAttribute("id",          strval($app['id']));
 			$expApp->addAttribute("usesSparkle", (strval($app['usesSparkle']))!="1" ? "0" : "1");
 			$expApp->addAttribute("identifier",  strval($app['identifier']));

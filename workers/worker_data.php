@@ -12,9 +12,10 @@ class DataWorker {
 		$allApps = array();
 		foreach ($this->Shimmer->apps->list as $app) {
 			array_push($allApps, array(
-				'name'	=>	$app['name'],
-				'id'	=>	$app['id'],
-				'users'	=>	$this->Shimmer->stats->appUsers($app)
+				'id'      =>	$app['id'],
+				'name'    =>	$app['name'],
+				'variant' =>	$app['variant'],
+				'users'   =>	$this->Shimmer->stats->appUsers($app)
 			));
 		}
 		return $allApps;

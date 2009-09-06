@@ -8,7 +8,7 @@ Shimmer = {
 			now = new Date();
 			currentDate = now.getTime();
 			if (currentDate-Shimmer.window.lastWindowResize>100 ) {
-				redrawAllGraphsFromCache();
+				redrawAllGraphsFromCache(true);
 				Shimmer.window.lastWindowResize = currentDate;
 			}
 		},
@@ -18,14 +18,8 @@ Shimmer = {
 		start: function() {
 			Shimmer.initialize.addShortcuts();
 			apps.loadInitialData();
-
-			// Shimmer.ajaxHistory.setupAjaxHistory();
-
 			window.onresize = Shimmer.window.resized;
-			
 			versionsUI.table.scroll.setup();
-			
-			// setTimeout('appsUI.form.startForm(apps.currentApp)',500);
 		},
 		
 		addShortcuts: function() {
@@ -35,8 +29,8 @@ Shimmer = {
 				shortcut.add("k",			function() { versions.alterSelectedVersion(-1);			}, upDownOptions );
 				shortcut.add("r",			function() { versions.toggleVersionRates(); 			}, upDownOptions );
 				shortcut.add("q",			function() { boxes.toggleStatsDisplay(); 				}, upDownOptions );
-				shortcut.add("ctrl+left",	function() { apps.alterSelectedApp(+1); 				}, upDownOptions );
-				shortcut.add("ctrl+right",	function() { apps.alterSelectedApp(-1); 				}, upDownOptions );
+				shortcut.add("ctrl+right",	function() { apps.changeToNextApp();				}, upDownOptions );
+				shortcut.add("ctrl+left",	function() { apps.changeToPreviousApp(); 				}, upDownOptions );
 				shortcut.add("enter",		function() { versions.openSelectedVersion(); 			}, upDownOptions );
 				shortcut.add("l",			function() { versions.flipSelectedVersionLive(); 		}, upDownOptions );
 				shortcut.add("u",			function() { apps.reloadCurrentAppVersionsAndGraphs();	}, upDownOptions );
@@ -106,27 +100,15 @@ Shimmer = {
 		},
 		
 		isUrl: function(input) {
-			var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+			var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+			return regexp.test(input);
+		},
+		
+		isInteger: function(input) {
+			var regexp = /^[0-9]+$/;
 			return regexp.test(input);
 		}
 		
-	},
-	
-	ajaxHistory: {
-		setupAjaxHistory: function() {
-			lastHash = "";
-			ajaxHistoryTimer = setInterval("Shimmer.ajaxHistory.checkAjaxHistory();",200);
-		},
-
-		checkAjaxHistory: function() {
-			var currentHash = Shimmer.state.getAppNameFromURL();
-			if (currentHash) {
-				if (lastHash.length>0 && currentHash.length>0 && currentHash != lastHash) {
-					lastHash = currentHash;
-					apps.switchApp(currentHash);
-				}
-			}
-		}
 	},
 	
 	blob: {
@@ -172,13 +154,24 @@ Shimmer = {
 			lastHash = title;
 			document.title = forceWindowTitle;
 		},
-		getAppNameFromURL: function() {
+		
+		getPageHash: function() {
 			var currentURL = document.location.href;
 			var twoParts = currentURL.split("#");
-			if (twoParts.length == 2 && twoParts[1].length > 0) {
-				return unescape(twoParts[1]);
+			if (twoParts.length == 2 && twoParts[1].length > 0) return twoParts[1];
+			return false;
+		},
+		
+		// The first part of the hash is the ID
+		getAppIdFromHash: function() {
+			var hash = Shimmer.state.getPageHash();
+			if (hash) {
+				hashParts = hash.split(":");
+				if (hashParts.length>0 && Shimmer.util.isInteger(hashParts[0])) {
+					return hashParts[0];
+				}
 			}
-			return undefined;
+			return false;
 		}
 	},
 	

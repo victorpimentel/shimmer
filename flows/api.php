@@ -12,9 +12,11 @@ function convertFieldName($table,$field,$type=1) {
 	return $field;
 }
 
-$appName = $_GET['app'];
+$appName    = $_GET['appName'];
+$appVariant = $_GET['appVariant'];
+if (!isset($appVariant)) $appVariant = "";
 if ( isset($appName) ) {
-	$app = $Shimmer->apps->app($appName);
+	$app = $Shimmer->apps->appFromNameAndVariant($appName, $appVariant);
 	if ($app) {
 		$versionsTable = $app['versions_table'];
 		if ($versionsTable) {

@@ -1,13 +1,15 @@
 linkcenter = {
 	show: function() {
 		// Load the app list (including masks, versions), and then show the form
-		var knownApps = apps.knownAppNames();
+		var knownApps = apps.appsHub.knownApps();
 		if (knownApps.length>0) {
+			var knownAppIDs = [];
+			for (var i=0; i < knownApps.length; i++) knownAppIDs.push(knownApps[i].id);
 			new Ajax.Request('?ajax', {
 				method:'get',
 				parameters: {
 					action:	   'get.data.many',
-					apps:      knownApps.join(','),
+					appIDs:      knownAppIDs.join(','),
 					versions:  true,
 					masks:     true
 				},
@@ -17,7 +19,7 @@ linkcenter = {
 					if (theResponse.wasOK) {
 						if (theResponse.apps && theResponse.apps.length>0) {
 							linkcenter.cache.setCache(theResponse.apps);
-							linkcenter.setSelectedApp(apps.currentApp, false);
+							linkcenter.setSelectedApp(apps.appsHub.currentAppID, false);
 							linkcenter.showForm();
 						} else {
 							// TODO add showNoAppsForm() method
@@ -29,11 +31,24 @@ linkcenter = {
 		}
 	},
 	
-	selectedApp: false,
+	selectedAppID: false,
 	
-	setSelectedApp: function(name, updateAppPopups) {
+	selectedAppInfo: function() {
+		for (var i=0; i < linkcenter.cache.cachedApps.length; i++) {
+			if (linkcenter.cache.cachedApps[i].id==linkcenter.selectedAppID) {
+				return {
+					id:      linkcenter.cache.cachedApps[i].id,
+					name:    linkcenter.cache.cachedApps[i].name,
+					variant: linkcenter.cache.cachedApps[i].variant
+				};
+			}
+		};
+		return false;
+	},
+	
+	setSelectedApp: function(id, updateAppPopups) {
 		if (typeof updateAppPopups == "undefined") updateAppPopups=true;
-		linkcenter.selectedApp = name;
+		linkcenter.selectedAppID = id;
 		if (updateAppPopups) {
 			linkcenter.appcasts.updateAppSelect();
 			linkcenter.downloads.updateAppSelect();
@@ -126,7 +141,7 @@ linkcenter = {
 		code += '        </tr>';
 		code += '        <tr>';
 		code += '          <th>Version</th>';
-		code += '          <td><div id="' + linkcenter.downloads.versionSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.cache.firstAppName(), linkcenter.downloads.versionSelectId, 'linkcenter.downloads.fillMask();') + '</div></td>';
+		code += '          <td><div id="' + linkcenter.downloads.versionSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.downloads.versionSelectId, 'linkcenter.downloads.fillMask();') + '</div></td>';
 		code += '        </tr>';
 		code += '      </table>';
 		code += '      <table>';
@@ -148,11 +163,11 @@ linkcenter = {
 		code += '        </tr>';
 		code += '        <tr>';
 		code += '          <th>Version</th>';
-		code += '          <td><div id="' + linkcenter.notes.versionSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.cache.firstAppName(), linkcenter.notes.versionSelectId, 'linkcenter.notes.fillMask();') + '</div></td>';
+		code += '          <td><div id="' + linkcenter.notes.versionSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.notes.versionSelectId, 'linkcenter.notes.fillMask();') + '</div></td>';
 		code += '        </tr>';
 		code += '        <tr>';
 		code += '          <th>Compare</th>';
-		code += '          <td><div id="' + linkcenter.notes.compareSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.cache.firstAppName(), linkcenter.notes.compareSelectId, 'linkcenter.notes.fillMask();') + '</div></td>';
+		code += '          <td><div id="' + linkcenter.notes.compareSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.notes.compareSelectId, 'linkcenter.notes.fillMask();') + '</div></td>';
 		code += '        </tr>';
 		code += '      </table>';
 		code += '      <table>';
@@ -189,12 +204,11 @@ linkcenter = {
 		
 		code += '    </div>';
 		code += '    <div id="save_focus">';
-
+		
 		code += focusBox.doneButtonCode('focusBox.hide();return false;');
 		code += '    </div>';
 		code += '  </div>';
 		// code += '</form>';
-
 		focusBox.present({titleString:"Link Center", titleImage:'title_linkcenter.png', content:code, width:312, beforeDisplay:linkcenter.fillAllMasks, autofocus:false});
 	},
 	
@@ -208,34 +222,24 @@ linkcenter = {
 			linkcenter.cache.cachedApps = cacheData;
 		},
 		
-		// Process the cachedApps variable, returning an array of app name strings
-		appNames: function() {
-			var names = [];
-			for (var i=0; i < linkcenter.cache.cachedApps.length; i++) {
-				var theName = linkcenter.cache.cachedApps[i].name;
-				if (theName && theName.length>0) names.push(theName);
-			};
-			return names;
-		},
-		
 		appSelectCode: function(id, includeAllOption) {
 			if (typeof includeAllOption == "undefined") includeAllOption=false;
 			var code = '<select id=' + id + ' onchange="linkcenter.setSelectedApp(this.value);">';
 
 			if (includeAllOption) code += '<option value="all">All Apps</option><hr />';
 
-			var names = linkcenter.cache.appNames();
-			for (var i=0; i < names.length; i++) {
-				code += '<option value="' + names[i] + '"' + (linkcenter.selectedApp==names[i] ? 'selected':'') + '>' + names[i] + '</option>';
+			var allApps = linkcenter.cache.cachedApps;
+			for (var i=0; i < allApps.length; i++) {
+				code += '<option value="' + allApps[i].id + '"' + (linkcenter.selectedAppID==allApps[i].id ? 'selected':'') + (linkcenter.cache.versionNumbers(allApps[i].id).length==0 ? ' disabled' : '') + '>' + allApps[i].name + (allApps[i].variant && allApps[i].variant.length>0 ? (' (' + allApps[i].variant + ')') : '') + '</option>';
 			};
 			code += '</select>';
 			return code;
 		},
 		
-		versionNumbers: function(appName) {
+		versionNumbers: function(appID) {
 			var versions = [];
 			for (var i=0; i < linkcenter.cache.cachedApps.length; i++) {
-				if (linkcenter.cache.cachedApps[i].name==appName) {
+				if (linkcenter.cache.cachedApps[i].id==appID) {
 					var app = linkcenter.cache.cachedApps[i];
 					var foundVersions = app.allVersions;
 					if (foundVersions && foundVersions.length>0) {
@@ -254,7 +258,7 @@ linkcenter = {
 			return versions;
 		},
 		
-		versionSelectCode: function(appName, id, change, extraOptions) {
+		versionSelectCode: function(appID, id, change, extraOptions) {
 			if (typeof extraOptions == "undefined") extraOptions=false;
 			var code = '<select id="' + id + '" onchange="' + change + '">';
 			if (extraOptions) {
@@ -263,7 +267,7 @@ linkcenter = {
 				};
 				code += '<hr />';
 			}
-			var versions = linkcenter.cache.versionNumbers(appName);
+			var versions = linkcenter.cache.versionNumbers(appID);
 			for (var i=0; i < versions.length; i++) {
 				code += '<option>' + versions[i].text + '</option>';
 			};
@@ -271,9 +275,9 @@ linkcenter = {
 			return code;
 		},
 		
-		masks: function(appName) {
+		masks: function(appID) {
 			for (var i=0; i < linkcenter.cache.cachedApps.length; i++) {
-				if (linkcenter.cache.cachedApps[i].name==appName) {
+				if (linkcenter.cache.cachedApps[i].id==appID) {
 					var app = linkcenter.cache.cachedApps[i];
 					var foundMasks = app.masks;
 					if (foundMasks && foundMasks.download && foundMasks.notes) {
@@ -283,11 +287,6 @@ linkcenter = {
 			};
 			return false;
 		},
-		
-		firstAppName: function() {
-			if (linkcenter.cache.cachedApps.length>0) return linkcenter.cache.cachedApps[0].name;
-			return false;
-		}
 	},
 	
 	appcasts: {
@@ -299,9 +298,9 @@ linkcenter = {
 		},
 		
 		fillMask: function() {
-			var appName = linkcenter.selectedApp;
+			var appInfo = linkcenter.selectedAppInfo();
 			var mask    = Shimmer.util.baseLocation() + "?appcast&app=_APP_";
-			mask = mask.replace(/_APP_/g, appName);
+			mask = mask.replace(/_APP_/g, appInfo.name);
 			mask = mask.replace(/ /g, '%20');
 			$(linkcenter.appcasts.resultLocation).value = mask;
 		},
@@ -342,10 +341,10 @@ linkcenter = {
 		},
 		
 		fillMask: function() {
-			var appName     = linkcenter.selectedApp;
+			var appInfo = linkcenter.selectedAppInfo();
 			var versionInfo = linkcenter.downloads.selectedVersion();
-			var mask = linkcenter.cache.masks(appName).download;
-			mask = mask.replace(/_APP_/g, appName);
+			var mask = linkcenter.cache.masks(appInfo.id).download;
+			mask = mask.replace(/_APP_/g, appInfo.name);
 			mask = mask.replace(/_VER_/g, versionInfo.version);
 			mask = mask.replace(/_BUILD_/g, versionInfo.build);
 			mask = mask.replace(/ /g, '%20');
@@ -402,17 +401,17 @@ linkcenter = {
 		},
 		
 		refreshVersions: function() {
-			$(linkcenter.notes.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedApp, linkcenter.notes.versionSelectId ,'linkcenter.notes.fillMask()');
+			$(linkcenter.notes.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.notes.versionSelectId ,'linkcenter.notes.fillMask()');
 			// TODO make compare selector have 'none' item at top
-			$(linkcenter.notes.compareSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedApp, linkcenter.notes.compareSelectId ,'linkcenter.notes.fillMask()');
+			$(linkcenter.notes.compareSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.notes.compareSelectId ,'linkcenter.notes.fillMask()');
 		},
 		
 		fillMask: function() {
-			var appName     = linkcenter.selectedApp;
+			var appInfo = linkcenter.selectedAppInfo();
 			var versionInfo = linkcenter.notes.selectedVersion();
 			var compareInfo = linkcenter.notes.selectedCompare();
-			var mask = linkcenter.cache.masks(appName).notes;
-			mask = mask.replace(/_APP_/g, appName);
+			var mask = linkcenter.cache.masks(appInfo.id).notes;
+			mask = mask.replace(/_APP_/g, appInfo.name);
 			mask = mask.replace(/_VER_/g, versionInfo.version);
 			mask = mask.replace(/_BUILD_/g, versionInfo.build);
 			mask = mask.replace(/ /g, '%20');
@@ -459,7 +458,7 @@ linkcenter = {
 		},
 		
 		refreshVersions: function() {
-			$(linkcenter.api.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedApp, linkcenter.api.versionSelectId ,'linkcenter.api.fillMask()', linkcenter.api.extraVersionLabels);
+			$(linkcenter.api.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.api.versionSelectId ,'linkcenter.api.fillMask()', linkcenter.api.extraVersionLabels);
 		},
 		
 		extraVersionLabels: [
@@ -477,7 +476,7 @@ linkcenter = {
 			code += '  </tr>';
 			code += '  <tr>';
 			code += '    <th>Version</th>';
-			code += '    <td><div id="' + linkcenter.api.versionSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.selectedApp, linkcenter.api.versionSelectId, 'linkcenter.api.fillMask();', linkcenter.api.extraVersionLabels) + '</div></td>';
+			code += '    <td><div id="' + linkcenter.api.versionSelectContainer + '">' + linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.api.versionSelectId, 'linkcenter.api.fillMask();', linkcenter.api.extraVersionLabels) + '</div></td>';
 			code += '  </tr>';
 			code += '  <tr>';
 			code += '    <th valign="top">Fields</th>';
@@ -527,13 +526,13 @@ linkcenter = {
 		fillMask: function() {
 			var method = linkcenter.api.selectedMethod();
 			if (method=='version.info') {
-				var appName     = linkcenter.selectedApp;
+				var appInfo = linkcenter.selectedAppInfo();
 				var versionInfo = linkcenter.api.selectedVersion();
 				var fields      = linkcenter.api.selectedFields();
 				var callback    = $(linkcenter.api.callbackId).value;
 				
 				var mask = Shimmer.util.baseLocation() + "?api&app=_APP_&method=version.info&version=_VER_&build=_BUILD_&fields=_FIELDS_&callback=_CALLBACK_";
-				mask = mask.replace(/_APP_/g,      appName);
+				mask = mask.replace(/_APP_/g,      appInfo.name);
 				mask = mask.replace(/_VER_/g,      versionInfo.version);
 				mask = mask.replace(/_BUILD_/g,    versionInfo.build);
 				mask = mask.replace(/_FIELDS_/g,   fields.join(','));

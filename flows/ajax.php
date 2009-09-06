@@ -3,8 +3,6 @@ if (!defined('Shimmer')) header('Location:/');
 $type = $_GET['type'];
 if ($type=="pref") {
 	include('flows/ajax_pref.php');
-} else if ($type=="stat") {
-	include('flows/ajax_stat.php');
 } else if ($type=="backup") {
 	include('flows/ajax_backup.php');
 } else if ($type=="autoprocess") {

@@ -31,6 +31,7 @@ class AppManager {
 								
 				array_push($newApps, array(
 					'name'				=>	$app['name'],
+					'variant'			=>	$app['variant'],
 					'id'				=>	$app['id'],
 					'order'				=>	intval($app['app_order']),
 					'versions_table'	=>	$app['table'],
@@ -51,7 +52,7 @@ class AppManager {
 	
 	function setNotesThemeForApp($app, $notesTheme) {
 		if (!preg_match('/\.shimmer\.xml$/', $notesTheme)) $notesTheme = "default.shimmer.xml";
-		$updateSql = "UPDATE `applications` SET `notes_theme`='" . sql_safe($notesTheme) . "' WHERE (`name`='" . sql_safe($app['name']) . "')";
+		$updateSql = "UPDATE `applications` SET `notes_theme`='" . sql_safe($notesTheme) . "' WHERE (`id`='" . sql_safe($app['id']) . "')";
 		$this->Shimmer->query($updateSql);
 	}
 	
@@ -60,13 +61,13 @@ class AppManager {
 		if ($this->Shimmer->isURL($masks['notesMask']))		array_push($sqlUpdates, "`notes_mask`='"	. sql_safe($masks['notesMask'])		. "'");
 		if ($this->Shimmer->isURL($masks['downloadMask']))	array_push($sqlUpdates, "`download_mask`='"	. sql_safe($masks['downloadMask'])	. "'");
 		if (sizeof($sqlUpdates)>0) {
-			$sql = "UPDATE `applications` SET " . implode(", ", $sqlUpdates) . " WHERE (`name`='" . sql_safe($app['name']) . "')";
+			$sql = "UPDATE `applications` SET " . implode(", ", $sqlUpdates) . " WHERE (`id`='" . sql_safe($app['id']) . "')";
 			$this->Shimmer->query($sql);
 		}
 	}
 	
 	function boxesForApp($app) {
-		$sql = "SELECT `boxes` FROM `applications` WHERE (`name`='" . sql_safe($app['name']) . "')";
+		$sql = "SELECT `boxes` FROM `applications` WHERE (`id`='" . sql_safe($app['id']) . "')";
 		$result = $this->Shimmer->query($sql);
 		if ($result) {
 			$resultsRow = mysql_fetch_array($result);
@@ -92,6 +93,22 @@ class AppManager {
 		$lowerName = strtolower($name);
 		foreach ($this->list as $app) {
 			if (strtolower($app['name'])==$lowerName) return $app;
+		}
+		return false;
+	}
+	
+	function appFromID($id) {
+		foreach ($this->list as $app) if ($app['id']==$id) return $app;
+		return false;
+	}
+	
+	function appFromNameAndVariant($name, $variant) {
+		if ($name && $variant!==false) {
+			$lowerName    = strtolower($name);
+			$lowerVariant = strtolower($variant);
+			foreach ($this->list as $app) {
+				if (strtolower($app['name'])==$lowerName && strtolower($app['variant'])==$lowerVariant) return $app;
+			}
 		}
 		return false;
 	}
@@ -124,31 +141,30 @@ class AppManager {
 		return $tally;
 	}
 	
-	function create($name, $usesSparkle=true) {
-		if (strlen($name)>0) {
-			$existingApp = $this->app($name);
-			if ( !$existingApp && count($this->list)<=15) {
-				$lowercaseAppName = $this->convertTableName($name);
-				$newVersionsTableName = "versions_" . $lowercaseAppName;
-				$newUsersTableName    = "users_"    . $lowercaseAppName;
-				
-				if ( $this->Shimmer->table->createVersionTable($newVersionsTableName) && $this->Shimmer->table->createUserTable($newUsersTableName, $usesSparkle) ) {
-					$sql = "INSERT INTO `applications` (`name`, `table`, `users`, `creation_date`, `uses_sparkle`) VALUES (";
-					$sql .= "'" . sql_safe($name) . "'";
-					$sql .= ", '" . sql_safe($newVersionsTableName)	. "'";
-					$sql .= ", '" . sql_safe($newUsersTableName)	. "'";
-					$sql .= ", '" . sql_safe(date('Y-m-d'))		. "'";
-					$sql .= ", "  . ($usesSparkle ? '1' : '0')		. ")";
-					$result = $this->Shimmer->query($sql);
-					if ($result) {
-						$this->loadAppsList();
-						if ($usesSparkle) $this->Shimmer->table->addSparkleColumnsToTable($app['users_table']);
-						return $this->app($name);
-					}
+	function createNew($name, $variant, $usesSparkle=true) {
+		if ($name && $variant) {
+			if (!$this->appFromNameAndVariant($name, $variant)) {
+				$sql = "INSERT INTO `applications` (`name`, `variant`, `creation_date`, `uses_sparkle`) VALUES ('" . sql_safe($name) . "','" . sql_safe($variant) . "','" . sql_safe(date('Y-m-d')) . "'," . ($usesSparkle ? '1' : '0') . ")";
+				if ($this->Shimmer->query($sql)) {
+					// todo: look into uses mysql_affected_rows to get this `id' value from the insertion result
+					$sql = "SELECT `id` FROM `applications` WHERE (`name`='" . sql_safe($name) . "') AND (`variant`='" . sql_safe($variant) . "') LIMIT 1";
+					if ($row = $this->Shimmer->querySelect($sql, true)) {
+						$newID = $row['id'];
+						$versionsTable = "versions_" . $newID;
+						$usersTable    = "users_"    . $newID;
+						
+						if ($this->Shimmer->table->createVersionTable($versionsTable) && $this->Shimmer->table->createUserTable($usersTable, $usesSparkle)) {
+							$sql = "UPDATE `applications` SET `table`='" . $versionsTable . "', `users`='" . $usersTable . "' WHERE (`id`='" . $newID . "') LIMIT 1";
+							if ($this->Shimmer->query($sql)) {
+								$this->loadAppsList();
+								return $this->appFromID($newID);
+							}
+						}
+					}	
 				}
-				return false;
 			}
 		}
+		return false;
 	}
 	
 	function delete($app) {
@@ -163,41 +179,24 @@ class AppManager {
 		return false;
 	}
 	
-	function rename($app,$newName) {
-		$lowercaseAppName		=	$this->convertTableName($newName);
-		$oldVersionsTableName	=	$app['versions_table'];
-		$newVersionsTableName	=	"versions_" . $lowercaseAppName;
-		$oldUsersTableName		=	$app['users_table'];
-		$newUsersTableName		=	"users_" . $lowercaseAppName;
-
-		if ( strcasecmp($app['name'],$newName)!=0 ) {
-			$renameWorked = true;
-			$renameSql = "RENAME TABLE `" . sql_safe($oldVersionsTableName) . "` TO `" . sql_safe($newVersionsTableName) . "`";
-			if (!$this->Shimmer->query($renameSql)) $renameWorked = false;
-			$renameSql = "RENAME TABLE `" . sql_safe($oldUsersTableName) . "` TO `" . sql_safe($newUsersTableName) . "`";
-			if (!$this->Shimmer->query($renameSql)) $renameWorked = false;
-
-			if ($renameWorked) {
-				/* Update table links within main 'applications' table */
-				$updateSql = "UPDATE `applications` SET `name`='" . sql_safe($newName) . "', `table`='" . sql_safe($newVersionsTableName) . "', `users`='" . sql_safe($newUsersTableName) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
-				$this->Shimmer->query($updateSql);
-				$this->loadAppsList();
-			} else return false;
-		}
-		return $this->app($newName);
+	function renameAppWithID($id, $name, $variant="") {
+		$updateSql = "UPDATE `applications` SET `name`='" . sql_safe($name) . "', `variant`='" . sql_safe($variant) . "' WHERE `id`='" . sql_safe($id) . "'";
+		$this->Shimmer->query($updateSql);
+		$this->loadAppsList();
+		return $this->appFromID($id);
 	}
 	
 	function setAppUsesSparkle($app, $usesSparkle) {
 		// Update the boolean 'uses_sparkle' flag in the Applications table.
 		// This determines if additional Graphs are available in the dashboard.
-		$sql = "UPDATE `applications` SET `uses_sparkle`='" . ($usesSparkle ? 1 : 0) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+		$sql = "UPDATE `applications` SET `uses_sparkle`='" . ($usesSparkle ? 1 : 0) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 		if ($this->Shimmer->query($sql)) {
 			// Add the Sparkle columns if they aren't already there
 			$this->Shimmer->table->addSparkleColumnsToTable($app['users_table']);
 			
 			// Also update the in-memory app list, in case any functions check the usesSparkle flag too
 			foreach ($this->list as $i => &$currentApp) {
-				if ($currentApp['name']==$app['name']) {
+				if ($currentApp['id']==$app['id']) {
 					$currentApp['usesSparkle'] = ($usesSparkle?true:false);
 					break;
 				}
@@ -231,7 +230,7 @@ class AppManager {
 	}
 	
 	function setAppIdentifier($app, $identifier) {
-		$sql = "UPDATE `applications` SET `identifier`='" . sql_safe($identifier) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+		$sql = "UPDATE `applications` SET `identifier`='" . sql_safe($identifier) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 		if ($this->Shimmer->query($sql)) {
 			$app['identifier'] = $identifier;
 			$this->updateStatIndexesForApp($app);
@@ -245,7 +244,7 @@ class AppManager {
 			'public'  => false,
 			'private' => false
 		);
-		$sql = "SELECT `public_key`, `private_key` FROM `applications` WHERE `name`='" . $app['name'] . "'";
+		$sql = "SELECT `public_key`, `private_key` FROM `applications` WHERE `id`='" . $app['id'] . "'";
 		if ($result = $this->Shimmer->query($sql)) {
 			if ($row = mysql_fetch_array($result)) {
 				if ($row['public_key'])  $keys['public']  = $row['public_key'];
@@ -262,7 +261,7 @@ class AppManager {
 				if ($uploadInfo = $this->Shimmer->pref->read('public-key-processing', true)) {
 					if ($uploadInfo['key_ok'] && $uploadInfo['session'] == $sessionKeys['public']) {
 						if ($keyContents = file_get_contents($uploadInfo['file'])) {
-							$sql = "UPDATE `applications` SET `public_key`='" . sql_safe($keyContents) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+							$sql = "UPDATE `applications` SET `public_key`='" . sql_safe($keyContents) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 							$this->Shimmer->query($sql);
 						}
 					}
@@ -273,7 +272,7 @@ class AppManager {
 				if ($uploadInfo = $this->Shimmer->pref->read('private-key-processing', true)) {
 					if ($uploadInfo['key_ok'] && $uploadInfo['session'] == $sessionKeys['private']) {
 						if ($keyContents = file_get_contents($uploadInfo['file'])) {
-							$sql = "UPDATE `applications` SET `private_key`='" . sql_safe($keyContents) . "' WHERE `name`='" . sql_safe($app['name']) . "'";
+							$sql = "UPDATE `applications` SET `private_key`='" . sql_safe($keyContents) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
 							$this->Shimmer->query($sql);
 						}
 					}
@@ -281,12 +280,6 @@ class AppManager {
 			}
 		}
 	}
-	
-	/* This function replaces spaces with underscores. Use for table names */
-	function convertTableName($appName) {
-		return preg_replace("/^-|-$/","",preg_replace("/[^a-zA-Z0-9]+/","-",strtolower($appName)));
-	}
-	
 }
 
 

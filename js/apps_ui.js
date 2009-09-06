@@ -4,7 +4,7 @@ appsUI = {
 
 	'regenerateAppList': function(applist, reloadVersionsToo) {
 		if (typeof reloadVersionsToo == "undefined") reloadVersionsToo=true;
-		apps.clearKnownApps();
+		apps.appsHub.clearAppList();
 		var newCode = "";
 		if (applist.length>0) {
 			for (var i=0; i<applist.length; i++) {
@@ -12,11 +12,11 @@ appsUI = {
 				var appName = theApp.name;
 				var appId   = theApp.id;
 				newCode += '<li class="appname" id="applist_' + appId + '">';
-				newCode += '<img src="img/pencil_small.png" class="applist-edit-pencil" onclick="javascript:appsUI.form.startForm(\'' + appName + '\');" title="Edit this app..." />';
-				newCode += '<img src="img/common/cross_small.png" class="applist-delete-cross" onclick="javascript:apps.deleteApp(\'' + appName + '\');" title="Delete this app" />';
-				newCode += '<span onclick="javascript:apps.appClicked(this);" alt="' + appName + '" title="' + parseInt(theApp.users) + ' users">' + appName + '</span>';
+				newCode += '<img src="img/pencil_small.png" class="applist-edit-pencil" onclick="javascript:appsUI.form.startForm(\'' + appId + '\');" title="Edit this app..." />';
+				newCode += '<img src="img/common/cross_small.png" class="applist-delete-cross" onclick="javascript:apps.deleteApp(\'' + appId + '\', \'' + appName + '\');" title="Delete this app" />';
+				newCode += '<span onclick="javascript:apps.appClicked(this);" alt="' + appId + '" title="' + parseInt(theApp.users) + ' users">' + appName + (theApp.variant && theApp.variant.length>0 ? ('<br /><small>' + theApp.variant + '</small>') : '') + '</span>';
 				newCode += '</li>';
-				apps.addKnownApp(appName);
+				apps.appsHub.addApp(appId, {name:appName, variant:theApp.variant, count:theApp.users});
 			}
 		}
 		newCode += '<li class="bottom_li"><a href="#NewApp" onclick="appsUI.form.startForm();return false;">New App...</a></li>';
@@ -25,44 +25,29 @@ appsUI = {
 		
 		if (applist.length>0 ) {
 			Shimmer.hideWelcomeArea();
-			var urlAppName = Shimmer.state.getAppNameFromURL();
+			var hashAppID = Shimmer.state.getAppIdFromHash();
 			
-			// If this is the first app list load, and a valid app has been set in the URL hash
-			if (apps.hasReloadedAppList==false && urlAppName!=undefined && apps.indexOfApp(urlAppName)>-1) {
-				apps.switchApp(unescape(urlAppName),reloadVersionsToo);
+			if (hashAppID) {
+				apps.changeToApp(hashAppID);
 			// If the current App has been set
-			} else if (apps.currentAppIndex>=0) {
-				apps.switchToAppAtIndex(apps.currentAppIndex, reloadVersionsToo);
+			} else if (apps.appsHub.currentAppID) {
+				apps.changeToApp(apps.appsHub.currentAppID);
 			// In all other cases, switch to the first App in the list
 			} else {
-				apps.switchToAppAtIndex(0, reloadVersionsToo);
+				apps.changeToFirstApp();
 			}
 		} else {
-			apps.switchApp('');
+			// Switch to NO APP, to show welcome message + big blue button
 		}
-
-		if (urlAppName=="Settings" && applist.length>0 ) showSettingsArea();
 	},
 	
-	appNameFromClickedApplistItem: function(theDiv) {
-		var theName = theDiv.readAttribute('alt');
-		if (!theName) return false;
-		var returnItems = {name:theName};
+	appInfoFromClickedApplistItem: function(theDiv) {
+		var theId = theDiv.readAttribute('alt');
+		if (!theId) return false;
+		var returnItems = {id:theId};
 		var theUsers = theDiv.readAttribute('title');
 		if (theUsers) returnItems.users = parseInt(theUsers);
 		return returnItems;
 	},
-	
-	storedUserCountForAppName: function(appName) {
-		var allApplistItems = $$('ul#applist li.appname span');
-		for (var i=0; i < allApplistItems.length; i++) {
-			var li = allApplistItems[i];
-			if (li.readAttribute('alt') == appName) {
-				var titleAttribute = li.readAttribute('title');
-				if (titleAttribute) return parseInt(titleAttribute);
-			}
-		};
-		return 0;
-	}	
 	
 }

@@ -48,8 +48,8 @@ class RateManager {
 		return array('date'=> date('Y-m-d', time()-($daysAgo*60*60*24) ), 'count'=>$count );
 	}
 	
-	function processVersionRates($appName) {
-		$app = $this->Shimmer->apps->app($appName);
+	function processVersionRates($appID) {
+		$app = $this->Shimmer->apps->appFromID($appID);
 		if ($app) {
 			$wantedDayCount = 50;
 			$versions = $this->Shimmer->versions->versions($app);
