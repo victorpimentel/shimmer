@@ -156,7 +156,7 @@ versions = {
 				newCode += '<div class="version-cell version-download-graph" ' + openCode + '> <canvas height="16" width="50" id="download_spark_' + i + '" class="sparkline"></canvas></div>';
 				newCode += '<div class="version-cell version-user-count" ' + openCode + '>' + userCount + '</div>';
 				newCode += '<div class="version-cell version-user-graph" ' + openCode + '> <canvas height="16" width="50" id="user_spark_' + i + '" class="sparkline"></canvas></div>';
-				newCode += '<div class="version-cell version-delete-cell"><a href="#DeleteVersion" onclick="javascript:void(versionsUI.deleteVersion(\'' + apps.appsHub.currentAppID + '\',\'' + serverSeconds + '\',\'' + theVersion + '\'));return false;" class="version_button delete_version_button" id="delete_version_button_' + i + '" title="Delete ' + apps.currentApp + ' ' + theVersion + '">&nbsp;</a></div>';
+				newCode += '<div class="version-cell version-delete-cell"><a href="#DeleteVersion" onclick="javascript:void(versionsUI.deleteVersion(\'' + apps.appsHub.currentAppID + '\',\'' + serverSeconds + '\',\'' + theVersion + '\'));return false;" class="version_button delete_version_button" id="delete_version_button_' + i + '" title="Delete ' + apps.appsHub.titleForAppWithID(apps.appsHub.currentAppID) + ' version ' + theVersion + '">&nbsp;</a></div>';
 				newCode += '</div>';
 			}
 			newCode += '</div></div>';

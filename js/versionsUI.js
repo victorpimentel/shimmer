@@ -177,6 +177,7 @@ versionsUI = {
 		return date + " " + monthFromNumber(month) + " " + year;
 	},
 	
+	// todo: display build number in confirmation popup
 	deleteVersion: function(appID, timestamp, version) {
 		var appName = apps.appsHub.titleForAppWithID(appID);
 		if (appName && confirm("Are you sure you want to delete " + appName + " " + version + "?") ) {
@@ -200,19 +201,15 @@ versionsUI = {
 
 		if (theResponse.wasOK) {
 			notify.update('Version deleted',10);
-			var deletedVersion = theResponse.deletedVersion;
+			var deletedTimestamp = theResponse.deletedTimestamp;
 			var allRows = $$('#versions-table div.versions-row');
 			for (var i=0; i<allRows.length; i++) {
 				var currentRow = allRows[i];
-				var currentRowCells = currentRow.select("div.version-version");
-				if (currentRowCells.length > 0) {
-					var currentRowVersion = currentRowCells[0].readAttribute('alt');
-					if (currentRowVersion == deletedVersion) {
-						currentRow.style.background = "#FFCCCC";
-						new Effect.Fade(currentRow, {
-							// afterFinish: function() { versions.reloadVersionsForApp(apps.currentApp); }
-						});
-					}
+				if (currentRow.readAttribute('alt') == deletedTimestamp) {
+					currentRow.style.background = "#FFCCCC";
+					new Effect.Fade(currentRow, {
+						// afterFinish: function() { versions.reloadVersionsForApp(apps.currentApp); }
+					});
 				}
 			}
 		}

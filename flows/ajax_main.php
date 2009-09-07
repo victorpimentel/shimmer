@@ -207,7 +207,7 @@ if ($action=="get.data.many") {
 		$deleteVersion   = $_GET['delete_version'];
 		if ( $Shimmer->versions->delete($app,$deleteTimestamp,true) ) {
 			$returnArray['wasOK'] = true;
-			$returnArray['deletedVersion'] = $deleteVersion;
+			$returnArray['deletedTimestamp'] = $deleteTimestamp;
 		} else $returnArray['reason'] = "Version delete failed";
 	} else $returnArray['reason'] = "Supplied app name does not exist";
 } else if ( $action == "app.delete" ) {
