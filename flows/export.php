@@ -17,11 +17,12 @@ if ( $exportFormat=="xml" ) {
 			$expApp = $exp->addChild("app");
 			
 			// Add attributes to the current <app> element
-			$expApp->addAttribute("name",        strval($app['name']));
-			$expApp->addAttribute("variant",     strval($app['variant']));
-			$expApp->addAttribute("id",          strval($app['id']));
-			$expApp->addAttribute("usesSparkle", (strval($app['usesSparkle']))!="1" ? "0" : "1");
-			$expApp->addAttribute("identifier",  strval($app['identifier']));
+			$expApp->addAttribute("name",           strval($app['name']));
+			$expApp->addAttribute("variant",        strval($app['variant']));
+			$expApp->addAttribute("id",             strval($app['id']));
+			$expApp->addAttribute("usesSparkle",    (strval($app['usesSparkle']))!="1" ? "0" : "1");
+			$expApp->addAttribute("identifier",     strval($app['identifier']));
+			$expApp->addAttribute("incrementType",  strtolower($app['incrementType']));
 			
 			// Add custom Parameter definitions to the current <app> element
 			$expAppParams = $expApp->addChild("parameters");

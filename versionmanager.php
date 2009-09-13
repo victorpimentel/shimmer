@@ -23,12 +23,13 @@ class VersionManager {
 		}
 		$versionSQL = "SELECT " . $fieldSql . " FROM `" . sql_safe($app['versions_table']) . "` ";
 		$where = array();
-		if ($options['onlyLive'])		array_push($where, "`live`=1");
-		if ($options['timestamp'])		array_push($where, "`published`='" . sql_safe($options['timestamp']) . "'");
-		if ($options['minTimestamp'])	array_push($where, "`published`>'" . sql_safe($options['minTimestamp']) . "'");
-		if ($options['maxTimestamp'])	array_push($where, "`published`<='" . sql_safe($options['maxTimestamp']) . "'");
-		if ($options['version'])		array_push($where, "`version`='" . sql_safe($options['version']) . "'");
-		if ($options['build'])			array_push($where, "`build`='" . sql_safe($options['build']) . "'");
+		if ($options['onlyLive'])     array_push($where, "`live`=1");
+		if ($options['timestamp'])    array_push($where, "`published`='"                     . sql_safe($options['timestamp'])    . "'");
+		if ($options['minTimestamp']) array_push($where, "`published`>'"                     . sql_safe($options['minTimestamp']) . "'");
+		if ($options['maxTimestamp']) array_push($where, "`published`<='"                    . sql_safe($options['maxTimestamp']) . "'");
+		if ($options['version'])      array_push($where, "`version`='"                       . sql_safe($options['version'])      . "'");
+		if ($options['build'])        array_push($where, "`build`='"                         . sql_safe($options['build'])        . "'");
+		if ($options['increment'])    array_push($where, "`" . $app['incrementType'] . "`='" . sql_safe($options['increment'])    . "'");
 		if (count($where)>0) $versionSQL .= "WHERE " . implode(" AND ", $where) . " ";
 		$versionSQL .= "ORDER BY `published` ";
 		$versionSQL .= $options['flipDirection'] ? "ASC" : "DESC";
@@ -141,6 +142,17 @@ class VersionManager {
 					$row = mysql_fetch_array($result);
 					if (intval($row['version_count'])>0) return true;
 				}
+			}
+		}
+		return false;
+	}
+	
+	function incrementExists($app, $incrementNumber, $excludeTimestamp=false) {
+		if (strlen($incrementNumber)>0) {
+			$sql = "SELECT COUNT(*) AS 'version_count' FROM `" . sql_safe($app['versions_table']) . "` WHERE `" . $app['incrementType'] . "`='" . sql_safe($incrementNumber) . "'";
+			if ($excludeTimestamp) $sql .= " AND NOT `published`='" . $excludeTimestamp . "'";
+			if ($row = $this->Shimmer->querySelect($sql, true)) {
+				if (intval($row['version_count'])>0) return true;
 			}
 		}
 		return false;

@@ -75,9 +75,15 @@ versions = {
 							signature:      signature,
 							release_notes:  notes},
 			onSuccess: function(transport) {
-				versions.reloadVersionsForApp(apps.appsHub.currentAppID, true);
-				versionsUI.hideNewVersionForm();
-				notify.update('New version added successfully', 10);
+				var response = transport.responseText;
+				var theResponse = JSON.parse(response);
+				if (theResponse.wasOK) {
+					versions.reloadVersionsForApp(apps.appsHub.currentAppID, true);
+					versionsUI.hideNewVersionForm();
+					notify.update('New version added successfully', 10);
+				} else if (theResponse.versionAlreadyExists) {
+					notify.update('That version already exists. Please enter a different version number', 10);
+				}
 			}
 	    });
 	},
@@ -218,6 +224,7 @@ versions = {
 			parameters: {
 							action:              'app.update.version',
 							appID:               appID,
+							debug:true,
 							reference_timestamp: referenceTimestamp,
 							new_timestamp:       newTimestamp,
 							version_number:      newVersionNumber,
@@ -227,9 +234,15 @@ versions = {
 							signature:           signature,
 							release_notes:       notes},
 			onSuccess: function(transport) {
-				versionsUI.hideNewVersionForm();
-				versions.reloadVersionsForApp(apps.currentApp,true);
-				notify.update('Version updated successfully',10);
+				var response = transport.responseText;
+				var theResponse = JSON.parse(response);
+				if (theResponse.wasOK) {
+					versionsUI.hideNewVersionForm();
+					versions.reloadVersionsForApp(apps.currentApp,true);
+					notify.update('Version updated successfully',10);
+				} else if (theResponse.versionAlreadyExists) {
+					notify.update('That version already exists. Please enter a different version number', 10);
+				}
 			}
 		});
 	},

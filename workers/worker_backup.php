@@ -61,6 +61,9 @@ class BackupWorker {
 					$appIdentifier = strval($currentApp['identifier']);
 					$this->Shimmer->apps->setAppIdentifier($newApp, $appIdentifier);
 					
+					$appIncrementType = strval($currentApp['incrementType']);
+					$this->Shimmer->apps->setAppIncrementType($newApp, $appIncrementType);
+					
 					$allVersions = $currentApp->versions->version;
 					foreach ($allVersions as $currentVersion) {
 						$this->Shimmer->versions->add($newApp, array(

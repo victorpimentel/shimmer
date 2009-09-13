@@ -8,10 +8,11 @@ linkcenter = {
 			new Ajax.Request('?ajax', {
 				method:'get',
 				parameters: {
-					action:	   'get.data.many',
-					appIDs:      knownAppIDs.join(','),
-					versions:  true,
-					masks:     true
+					action:        'get.data.many',
+					appIDs:        knownAppIDs.join(','),
+					versions:      true,
+					masks:         true,
+					incrementType: true
 				},
 				onSuccess: function(transport) {
 					var response = transport.responseText;
@@ -37,9 +38,10 @@ linkcenter = {
 		for (var i=0; i < linkcenter.cache.cachedApps.length; i++) {
 			if (linkcenter.cache.cachedApps[i].id==linkcenter.selectedAppID) {
 				return {
-					id:      linkcenter.cache.cachedApps[i].id,
-					name:    linkcenter.cache.cachedApps[i].name,
-					variant: linkcenter.cache.cachedApps[i].variant
+					id:            linkcenter.cache.cachedApps[i].id,
+					name:          linkcenter.cache.cachedApps[i].name,
+					variant:       linkcenter.cache.cachedApps[i].variant,
+					incrementType: linkcenter.cache.cachedApps[i].incrementType
 				};
 			}
 		};
@@ -67,6 +69,18 @@ linkcenter = {
 					break;
 				}
 			};
+		}
+	},
+	
+	// Returns a two-element object: {version:'1.0', build:'2345'}
+	selectedVersion: function(selectId) {
+		var origValue = $(selectId).value;
+		if (origValue.indexOf(' (build ')>-1) {
+			var parts     = origValue.split(' (build ');
+			var buildPart = parts[1];
+			return {version:parts[0], build:buildPart.substring(0, buildPart.length-1)};
+		} else {
+			return {version: origValue, build:''};
 		}
 	},
 	
@@ -230,7 +244,7 @@ linkcenter = {
 
 			var allApps = linkcenter.cache.cachedApps;
 			for (var i=0; i < allApps.length; i++) {
-				code += '<option value="' + allApps[i].id + '"' + (linkcenter.selectedAppID==allApps[i].id ? 'selected':'') + (linkcenter.cache.versionNumbers(allApps[i].id).length==0 ? ' disabled' : '') + '>' + allApps[i].name + (allApps[i].variant && allApps[i].variant.length>0 ? (' (' + allApps[i].variant + ')') : '') + '</option>';
+				code += '<option value="' + allApps[i].id + '"' + (linkcenter.selectedAppID==allApps[i].id ? 'selected':'') + '>' + allApps[i].name + (allApps[i].variant && allApps[i].variant.length>0 ? (' (' + allApps[i].variant + ')') : '') + '</option>';
 			};
 			code += '</select>';
 			return code;
@@ -324,17 +338,7 @@ linkcenter = {
 			return $(linkcenter.downloads.appSelectId).value;
 		},
 		
-		// Returns a two-element object: {version:'1.0', build:'2345'}
-		selectedVersion: function() {
-			var origValue = $(linkcenter.downloads.versionSelectId).value;
-			if (origValue.indexOf(' (build ')>-1) {
-				var parts     = origValue.split(' (build ');
-				var buildPart = parts[1];
-				return {version:parts[0], build:buildPart.substring(0, buildPart.length-1)};
-			} else {
-				return {version: origValue, build:''};
-			}
-		},
+		selectedVersion: function() { return linkcenter.selectedVersion(linkcenter.downloads.versionSelectId); },
 		
 		refreshVersions: function() {
 			$(linkcenter.downloads.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedApp, linkcenter.downloads.versionSelectId ,'linkcenter.downloads.fillMask()');
@@ -345,8 +349,7 @@ linkcenter = {
 			var versionInfo = linkcenter.downloads.selectedVersion();
 			var mask = linkcenter.cache.masks(appInfo.id).download;
 			mask = mask.replace(/_APP_/g, appInfo.name);
-			mask = mask.replace(/_VER_/g, versionInfo.version);
-			mask = mask.replace(/_BUILD_/g, versionInfo.build);
+			mask = mask.replace(/_VER_/g, (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
 			mask = mask.replace(/ /g, '%20');
 			$(linkcenter.downloads.resultLocation).value = mask;
 		},
@@ -375,17 +378,7 @@ linkcenter = {
 			return $(linkcenter.notes.appSelectId).value;
 		},
 		
-		// Returns a two-element object: {version:'1.0', build:'2345'}
-		selectedVersion: function() {
-			var origValue = $(linkcenter.notes.versionSelectId).value;
-			if (origValue.indexOf(' (build ')>-1) {
-				var parts     = origValue.split(' (build ');
-				var buildPart = parts[1];
-				return {version:parts[0], build:buildPart.substring(0, buildPart.length-1)};
-			} else {
-				return {version: origValue, build:''};
-			}
-		},
+		selectedVersion: function() { return linkcenter.selectedVersion(linkcenter.notes.versionSelectId); },
 		
 		// Returns a two-element object: {version:'1.0', build:'2345'}
 		// TODO handle selection of 'none'
@@ -412,12 +405,10 @@ linkcenter = {
 			var compareInfo = linkcenter.notes.selectedCompare();
 			var mask = linkcenter.cache.masks(appInfo.id).notes;
 			mask = mask.replace(/_APP_/g, appInfo.name);
-			mask = mask.replace(/_VER_/g, versionInfo.version);
-			mask = mask.replace(/_BUILD_/g, versionInfo.build);
+			mask = mask.replace(/_VER_/g, (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
 			mask = mask.replace(/ /g, '%20');
 			
-			mask += (mask.match(/\?([^=]+(=[^&]*)?)(&[^=]+(=[^&]*)?)*$/) ? '&' : '?') + 'appVersion=' + compareInfo.version;
-			if (compareInfo.build && compareInfo.build.length>0) mask += '&appBuild=' + compareInfo.build;
+			mask += (mask.match(/\?([^=]+(=[^&]*)?)(&[^=]+(=[^&]*)?)*$/) ? '&' : '?') + 'minVersion=' + (appInfo.incrementType=='build' ? compareInfo.build : compareInfo.version);
 			$(linkcenter.notes.resultLocation).value = mask;
 		},
 		
@@ -498,16 +489,7 @@ linkcenter = {
 			return code;
 		},
 		
-		selectedVersion: function() {
-			var origValue = $(linkcenter.api.versionSelectId).value;
-			if (origValue.indexOf(' (build ')>-1) {
-				var parts     = origValue.split(' (build ');
-				var buildPart = parts[1];
-				return {version:parts[0], build:buildPart.substring(0, buildPart.length-1)};
-			} else {
-				return {version: origValue, build:''};
-			}
-		},
+		selectedVersion: function() { return linkcenter.selectedVersion(linkcenter.api.versionSelectId); },
 		
 		selectedFields: function() {
 			var fields = [];
@@ -531,10 +513,9 @@ linkcenter = {
 				var fields      = linkcenter.api.selectedFields();
 				var callback    = $(linkcenter.api.callbackId).value;
 				
-				var mask = Shimmer.util.baseLocation() + "?api&app=_APP_&method=version.info&version=_VER_&build=_BUILD_&fields=_FIELDS_&callback=_CALLBACK_";
+				var mask = Shimmer.util.baseLocation() + "?api&app=_APP_&method=version.info&appVersion=_VER_&fields=_FIELDS_&callback=_CALLBACK_";
 				mask = mask.replace(/_APP_/g,      appInfo.name);
-				mask = mask.replace(/_VER_/g,      versionInfo.version);
-				mask = mask.replace(/_BUILD_/g,    versionInfo.build);
+				mask = mask.replace(/_VER_/g,      (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
 				mask = mask.replace(/_FIELDS_/g,   fields.join(','));
 				mask = mask.replace(/_CALLBACK_/g, callback);
 				mask = mask.replace(/ /g,          '%20');

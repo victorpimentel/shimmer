@@ -7,19 +7,14 @@ if (isset($_GET['loudandclear'])) {
 $appName	= $_GET['appName'];
 $appVariant = $_GET['appVariant'];
 if (!isset($appVariant)) $appVariant = "";
-$version	= $_GET['version'];
-$build		= $_GET['build'];
+$version	= $_GET['appVersion'];
 
 $paramCount = 1;
 if ( isset($version) && isset($appName) ) {
 	$paramCount += 2;
 	$app = $Shimmer->apps->appFromNameAndVariant($appName, $appVariant);
 	if ($app) {
-		$versionSearch = array('onlyLive'=>true, 'version'=>$version);
-		if (isset($build) && strlen($build)>0) {
-			$versionSearch['build'] = $build;
-			$paramCount++;
-		}
+		$versionSearch = array('onlyLive'=>true, 'increment'=>$version);
 		$theVersion = $Shimmer->versions->version($app, $versionSearch);
 		if ($theVersion) {
 			$downloadURL = $theVersion['download'];
@@ -36,8 +31,7 @@ if ( isset($version) && isset($appName) ) {
 			}
 			header('Location: ' . $downloadURL);
 			$newCount = intval($theVersion['download_count']) + 1;
-			$updateSql = "UPDATE `" . sql_safe($app['versions_table']) . "` SET `download_count`=" . sql_safe($newCount) . " WHERE `version`='" . sql_safe($version) . "'";
-			if (isset($build) && strlen($build)>0) $updateSql .= " AND `build` = '" . $build . "'";
+			$updateSql = "UPDATE `" . sql_safe($app['versions_table']) . "` SET `download_count`=" . sql_safe($newCount) . " WHERE `" . $app['incrementType'] . "`='" . sql_safe($appVersion) . "' LIMIT 1";
 			$Shimmer->query($updateSql);
 		} else echo 'Download link could not be found, because the version does not exist.';
 		$Shimmer->rates->processVersionRates($app['id']);

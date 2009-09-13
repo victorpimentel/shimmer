@@ -4,13 +4,11 @@ if (isset($_GET['loudandclear'])) {
 	echo 'LOUDANDCLEAR';
 	exit();
 }
-$appName		= $_GET['appName'];
+$appName    = $_GET['appName'];
 $appVariant = $_GET['appVariant'];
 if (!isset($appVariant)) $appVariant = "";
-$versionLimit	= $_GET['limit'];
-$targetVersion	= $_GET['version'];
-$targetBuild	= $_GET['build'];
-$minVersion		= $_GET['appVersion'];
+$targetVersion = $_GET['appVersion'];
+$minVersion    = $_GET['minVersion'];
 if (!isset($templateName)) $templateName = "default";
 
 if ( isset($appName) ) {
@@ -18,16 +16,12 @@ if ( isset($appName) ) {
 	if ($app) {
 		$whereConditions = array("onlyLive"=>true);
 		$versionsRestricted = false;
-
 		if ( isset($targetVersion) ) {
-			$targetParameters = array( 'version' => $targetVersion );
-			if (isset($targetBuild)) $targetParameters['build'] = $targetBuild;
-			
-			$targetVersionInfo = $Shimmer->versions->version($app,$targetParameters);
+			$targetVersionInfo = $Shimmer->versions->version($app,array('increment'=>$targetVersion));
 			if ($targetVersionInfo) {
 				$targetTimestamp = $targetVersionInfo['published'];
 				if ( isset($minVersion) ) {
-					$minVersionInfo = $Shimmer->versions->version($app,array('version'=>$minVersion));
+					$minVersionInfo = $Shimmer->versions->version($app,array('increment'=>$minVersion));
 					if ($minVersionInfo) {
 						$minTimestamp = $minVersionInfo['published'];
 						if ( isset($targetTimestamp) && isset($minTimestamp) ) {

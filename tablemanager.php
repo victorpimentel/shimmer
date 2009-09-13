@@ -134,6 +134,7 @@ class TableManager {
 		$sql .= ", `public_key`		VARCHAR(3000)	NOT NULL";
 		$sql .= ", `private_key`	VARCHAR(3000)	NOT NULL";
 		$sql .= ", `uses_sparkle`	TINYINT(1)		NOT NULL	default '0'";
+		$sql .= ", `increment_type`	VARCHAR(255)	NOT NULL	default 'version'";
 		$sql .= ") CHARACTER SET utf8 COLLATE utf8_unicode_ci";
 		$result = $this->Shimmer->query($sql);
 		if ($result) return true;

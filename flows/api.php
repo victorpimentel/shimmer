@@ -28,8 +28,8 @@ if ( isset($appName) ) {
 				$allowedFilters = array("version","build","size","signature","notes","users","downloads");
 				$filterPairs = array(
 									array("downloads","download_count"),
-									array("size","bytes"),
-									array("users","user_count")
+									array("size",     "bytes"),
+									array("users",    "user_count")
 								);
 				$filterString = $_GET['fields'];
 				if ( isset($filterString) && strlen($filterString)>0 ) {
@@ -38,10 +38,7 @@ if ( isset($appName) ) {
 						if (!in_array("version",$userFilters)) array_push($userFilters,"version");
 						foreach ($userFilters as $key => $userFilter) {
 							if (strlen($userFilter)>0 && in_array($userFilter,$allowedFilters) && $userFilter != "users") {
-								array_push(
-									$chosenColumns,
-									convertFieldName($filterPairs,strval($userFilter),1)
-								);
+								array_push( $chosenColumns, convertFieldName($filterPairs,strval($userFilter),1) );
 							}
 						}
 					}
@@ -52,21 +49,15 @@ if ( isset($appName) ) {
 				if ($userFilters && in_array("users",$userFilters)) $searchConditions['includeUserCount'] = true;
 				
 				// Version Search
-				$versionCriteria = $_GET['version'];
+				$versionCriteria = $_GET['appVersion'];
 				if (!isset($versionCriteria)) $versionCriteria = "all";
 				if ($versionCriteria == "latest") {
 					$searchConditions['limit'] = 1;
 				} else if ($versionCriteria == "oldest") {
 					$searchConditions['flipDirection'] = true;
 					$searchConditions['limit'] = 1;
-				} else if ($versionCriteria !== "all") {
-					$searchConditions['version'] = $versionCriteria;
-				}
-				
-				// Build Search
-				$buildCriteria = $_GET['build'];
-				if (isset($buildCriteria)) {
-					$searchConditions['build'] = $buildCriteria;
+				} else if ($versionCriteria != "all") {
+					$searchConditions['increment'] = $versionCriteria;
 				}
 				
 				$searchedVersions = $Shimmer->versions->versions($app, $searchConditions);

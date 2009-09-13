@@ -13,15 +13,16 @@ appsUI.form = {
 		if (appId) {
 			new Ajax.Request('?ajax', {
 				parameters: {
-					action:      'get.data.many',
-					appID:       appId,
-					versions:    true,
-					graphs:      true,
-					masks:       true,
-					notestheme:  true,
-					usessparkle: true,
-					identifier:  true,
-					keyStatus:   true
+					action:        'get.data.many',
+					appID:         appId,
+					versions:      true,
+					graphs:        true,
+					masks:         true,
+					notestheme:    true,
+					usessparkle:   true,
+					identifier:    true,
+					keyStatus:     true,
+					incrementType: true
 				},
 				method:'get',
 				onSuccess: function(transport) {
@@ -30,13 +31,13 @@ appsUI.form = {
 					if (theResponse.wasOK && theResponse.apps && theResponse.apps.length>0) {
 						var theApp = theResponse.apps[0];
 						appsUI.form.versionImporter.knownVersions = (theApp.allVersions ? theApp.allVersions : false);
-						appsUI.form.showForm(theApp.name, theApp.params, theApp.graphs, theApp.notesTheme, theApp.masks.notes, theApp.masks.download, theApp.usesSparkle, false, theApp.identifier, theApp.keystatus, theApp.variant, theApp.id);
+						appsUI.form.showForm(theApp.name, theApp.params, theApp.graphs, theApp.notesTheme, theApp.masks.notes, theApp.masks.download, theApp.usesSparkle, false, theApp.identifier, theApp.keystatus, theApp.variant, theApp.id, theApp.incrementType);
 					}
 				}
 			});
 		} else {
 			appsUI.form.versionImporter.knownVersions = new Array();
-			appsUI.form.showForm('New App', false, false, false, '', '', true, true, '');
+			appsUI.form.showForm('New App', false, false, false, '', '', true, true, '', false, false, false, false);
 		}
 	},
 	
@@ -67,7 +68,7 @@ appsUI.form = {
 		});
 	},
 	
-	showForm: function(appName, params, graphs, notesTheme, notesMask, downloadMask, usesSparkle, isNew, identifier, keyStatus, variant, id) {
+	showForm: function(appName, params, graphs, notesTheme, notesMask, downloadMask, usesSparkle, isNew, identifier, keyStatus, variant, id, incrementType) {
 		var code = "";
 		code += '  <ul id="appsform-tabs">';
 		code += '    <li class="appsform-tab active" id="appsform-tabs-appdetails"><a href="#AppDetails" onclick="appsUI.form.slideToPane(1);return false;"><img src="img/gear.png" /> App Details</a></li>';
@@ -113,6 +114,10 @@ appsUI.form = {
 		
 		code += '        </select></td></tr>';
 		code += '        <tr><th>Variant</th><td><input type="text" id="app-variant" value="' + (variant ? variant : '') + '" />';
+		code += '        <tr><th>Increment Type</th><td><select id="app-increment-type">';
+		code += '          <option value="version"' + (incrementType=='version' ? ' SELECTED' : '') + '>Version Number</option>';
+		code += '          <option value="build"'   + (incrementType=='build'   ? ' SELECTED' : '') + '>Build Number (CFBundleVersion)</option>';
+		code += '        </select></td></tr>';
 		code += '      </table>';
 		
 		var pubSet  = false;
@@ -1057,20 +1062,21 @@ appsUI.form = {
 				new Ajax.Request('?ajax', {
 					method:'post',
 					parameters: {
-						action:			'app.save',
-						new_name:		appName,
-						variant:		$('app-variant').value,
-						parameters:		JSON.stringify(paramSets),
-						graphs:			JSON.stringify(graphSets),
-						notes: 			$('notes-theme-chooser').value,
-						notesMask:		$('notes-mask').value,
-						downloadMask:	$('download-mask').value,
-						appcastURL:		appsUI.form.versionImporter.lastAppcast,
-						importVersions:	JSON.stringify(importVersions),
-						usesSparkle:	($('app-uses-sparkle').checked ? 1 : 0),
-						identifier:		$('app-identifier').value,
+						action:         'app.save',
+						new_name:       appName,
+						variant:        $('app-variant').value,
+						parameters:     JSON.stringify(paramSets),
+						graphs:         JSON.stringify(graphSets),
+						notes:          $('notes-theme-chooser').value,
+						notesMask:      $('notes-mask').value,
+						downloadMask:   $('download-mask').value,
+						appcastURL:     appsUI.form.versionImporter.lastAppcast,
+						importVersions: JSON.stringify(importVersions),
+						usesSparkle:    ($('app-uses-sparkle').checked ? 1 : 0),
+						identifier:     $('app-identifier').value,
 						publicKey:      dsa.usedStampForType(dsa.pub).value,
-						privateKey:     dsa.usedStampForType(dsa.priv).value
+						privateKey:     dsa.usedStampForType(dsa.priv).value,
+						incrementType:  $('app-increment-type').value
 					},
 					onSuccess: function(transport) {
 						var createResponse = transport.responseText;
@@ -1098,21 +1104,22 @@ appsUI.form = {
 				new Ajax.Request('?ajax', {
 					method:'post',
 					parameters: {
-						action:			'app.save',
-						appID:			$('editingAppID').value,
-						new_name:		newAppName,
-						variant:		$('app-variant').value,
-						parameters:		JSON.stringify(paramSets),
-						graphs:			JSON.stringify(graphSets),
-						notes: 			$('notes-theme-chooser').value,
-						notesMask:		$('notes-mask').value,
-						downloadMask:	$('download-mask').value,
-						appcastURL:		appsUI.form.versionImporter.lastAppcast,
-						importVersions:	JSON.stringify(importVersions),
-						usesSparkle:	($('app-uses-sparkle').checked ? 1 : 0),
-						identifier:		$('app-identifier').value,
+						action:         'app.save',
+						appID:          $('editingAppID').value,
+						new_name:       newAppName,
+						variant:        $('app-variant').value,
+						parameters:     JSON.stringify(paramSets),
+						graphs:         JSON.stringify(graphSets),
+						notes:          $('notes-theme-chooser').value,
+						notesMask:      $('notes-mask').value,
+						downloadMask:   $('download-mask').value,
+						appcastURL:     appsUI.form.versionImporter.lastAppcast,
+						importVersions: JSON.stringify(importVersions),
+						usesSparkle:    ($('app-uses-sparkle').checked ? 1 : 0),
+						identifier:     $('app-identifier').value,
 						publicKey:      dsa.usedStampForType(dsa.pub).value,
-						privateKey:     dsa.usedStampForType(dsa.priv).value
+						privateKey:     dsa.usedStampForType(dsa.priv).value,
+						incrementType:  $('app-increment-type').value
 					},
 					timeout:30,
 					onSuccess: function(transport) {

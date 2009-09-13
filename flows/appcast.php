@@ -7,16 +7,15 @@ if (!isset($appVariant)) $appVariant = "";
 if ( isset($appName) ) {
 	$app = $Shimmer->apps->appFromNameAndVariant($appName, $appVariant);
 	if ($app) {
-		$versionLimit	= $_GET['limit'];
-		$targetVersion	= $_GET['targetVersion'];
-		$minVersion		= $_GET['appVersion'];
+		$versionLimit = $_GET['limit'];
+		$minVersion   = $_GET['appVersion'];
 		
 		$whereConditions = array("onlyLive"=>true);
 		if ( !isset($_GET['all']) ) $whereConditions['limit'] = 1;
 		$versions = $Shimmer->versions->versions($app, $whereConditions);
 		if ($versions && count($versions)>0) {
-			$notesMask		= $app['notesMask'];
-			$downloadMask	= $app['downloadMask'];
+			$notesMask    = $app['notesMask'];
+			$downloadMask = $app['downloadMask'];
 			if ($notesMask && $downloadMask) {
 				header('Content-type: application/rss+xml');
 				echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss version=\"2.0\" xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\">\n\t<channel>\n\t\t<title>$appName Updates</title>\n\t\t<description>Updates for " . $appName . "</description>\n\t\t<generator>Shimmer</generator>";
@@ -34,7 +33,7 @@ if ( isset($appName) ) {
 					$notesLink		= completeMask($notesMask,		$app, $version);
 					$downloadLink	= completeMask($downloadMask,	$app, $version);
 				
-					if (isset($minVersion)) $notesLink .= "?appVersion=$minVersion";
+					if (isset($minVersion)) $notesLink .= "?minVersion=$minVersion";
 
 					echo "\n\n\t\t<item>\n\t\t\t<title>$appName " . $version['version'] . "</title>\n\t\t\t<pubDate>" . date(DATE_RSS,$version['published']) . "</pubDate>\n\t\t\t<sparkle:releaseNotesLink><![CDATA[" . $notesLink . "]]></sparkle:releaseNotesLink>\n\t\t\t<enclosure\n\t\t\t\tsparkle:dsaSignature=\"" . $version['signature'] . "\"\n\t\t\t\t" . $sparkleVersionCode . "\n\t\t\t\turl=\"" . $downloadLink . "\"\n\t\t\t\tlength=\"" . $version['size'] . "\"\n\t\t\t\ttype=\"application/octet-stream\" />\n\t\t</item>";
 				}
@@ -42,7 +41,7 @@ if ( isset($appName) ) {
 			} else echo "Please configure your custom Download and Notes masks in Shimmer";
 		}
 
-		// 	If the app uses Sparkle, make sure the expected User-Agent is supplied. Helps to prevent fake stats.
+		// If the app uses Sparkle, make sure the expected User-Agent is supplied. Helps to prevent fake stats.
 		$userAgentPassed = true;
 		if ($app['usesSparkle']) {
 			$userAgentPassed = preg_match('/^.*\sSparkle\//', $_SERVER["HTTP_USER_AGENT"]);
@@ -74,7 +73,7 @@ function refreshUser($app,$sparkleParams,$columnRestrictions) {
 	global $Shimmer;
 	
 	// Prevent spoofing of app version
-	if ($Shimmer->versions->exists($app, array('version'=>$sparkleParams['appversion']))) {
+	if ($Shimmer->versions->incrementExists($app, $sparkleParams['appversion'])) {
 		$theIP = $Shimmer->requestIP();
 		
 		// Find the unique Identifier for the request

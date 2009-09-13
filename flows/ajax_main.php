@@ -13,7 +13,7 @@ if ($action=="get.data.many") {
 	
 	if (isset($_GET['applist'])) $returnArray['allApps'] = $dataWorker->getAppList();
 	
-	if (isset($_GET['versions']) || isset($_GET['graphs']) || isset($_GET['graphdata']) || isset($_GET['masks']) || isset($_GET['notestheme']) || isset($_GET['usessparkle']) || isset($_GET['identifier']) || isset($_GET['keyStatus'])) {
+	if (isset($_GET['versions']) || isset($_GET['graphs']) || isset($_GET['graphdata']) || isset($_GET['masks']) || isset($_GET['notestheme']) || isset($_GET['usessparkle']) || isset($_GET['identifier']) || isset($_GET['keyStatus']) || isset($_GET['incrementType'])) {
 		$chosenApps = array();
 		if (isset($_GET['appID'])) {
 			$requestedApp = $Shimmer->apps->appFromID($_GET['appID']);
@@ -103,9 +103,10 @@ if ($action=="get.data.many") {
 					$currentAppSet['keystatus'] = $keysStatus;
 				}
 				
-				if (isset($_GET['notestheme']))  { $currentAppSet['notesTheme']  = $chosenApp['notesTheme'];   }
-				if (isset($_GET['usessparkle'])) { $currentAppSet['usesSparkle'] = $chosenApp['usesSparkle']; }
-				if (isset($_GET['identifier']))  { $currentAppSet['identifier']  = $chosenApp['identifier'];   }
+				if (isset($_GET['notestheme']))     { $currentAppSet['notesTheme']  = $chosenApp['notesTheme'];         }
+				if (isset($_GET['usessparkle']))    { $currentAppSet['usesSparkle'] = $chosenApp['usesSparkle'];        }
+				if (isset($_GET['identifier']))     { $currentAppSet['identifier']  = $chosenApp['identifier'];         }
+				if (isset($_GET['incrementType']))  { $currentAppSet['incrementType']  = $chosenApp['incrementType'];   }
 				
 				array_push($finalApps, $currentAppSet);
 			}
@@ -138,17 +139,15 @@ if ($action=="get.data.many") {
 	$appID = $_POST['appID'];
 	$app = $Shimmer->apps->appFromID($appID);
 	if ($app) {
-		$newVersion		=	$_POST['version_number'];
-		$newBuild		=	$_POST['build_number'];
-		$downloadURL	=	$_POST['download_url'];
-		$bytes			=	$_POST['bytes'];
-		$signature		=	$_POST['signature'];
-		$notes			=	$_POST['release_notes'];
+		$newVersion  = $_POST['version_number'];
+		$newBuild    = $_POST['build_number'];
+		$downloadURL = $_POST['download_url'];
+		$bytes       = $_POST['bytes'];
+		$signature   = $_POST['signature'];
+		$notes       = $_POST['release_notes'];
 		
 		if (isset($newVersion) && isset($newBuild)) {
-			$searchArray = array('version'=>$newVersion);
-			if (strlen($newBuild)>0) $searchArray['build'] = $newBuild;
-			if (!$Shimmer->versions->exists($app,$searchArray)) {
+			if ( !$Shimmer->versions->incrementExists($app,($app['incrementType']=='build'?$newBuild:$newVersion)) ) {
 				$versionAdded = $Shimmer->versions->add($app, array(
 					'version'   => $newVersion,
 					'build'     => $newBuild,
@@ -162,7 +161,10 @@ if ($action=="get.data.many") {
 				if ($versionAdded) {
 					$returnArray['wasOK'] = true;
 				} else $returnArray['reason'] = "Failed to add version";
-			} else $returnArray['reason'] = "Version already exists";
+			} else {
+				$returnArray['reason'] = "Version already exists";
+				$returnArray['versionAlreadyExists'] = true;
+			}
 		} else $returnArray['reason'] = "Please supply version and build parameters";
 	} else $returnArray['reason'] = "Supplied app does not exist";
 } else if ( $action == "app.update.version" ) {
@@ -173,30 +175,33 @@ if ($action=="get.data.many") {
 		$new_timestamp = $_POST['new_timestamp'];
 		
 		$updateValues = array(
-			'version'	=>	'',
-			'build'		=>	'',
-			'download'	=>	'',
-			'bytes'		=>	0,
-			'signature'	=>	'',
-			'notes'		=>	'',
-			'published'	=>	$new_timestamp,
+			'version'   => '',
+			'build'     => '',
+			'download'  => '',
+			'bytes'     => 0,
+			'signature' => '',
+			'notes'     => '',
+			'published' => $new_timestamp,
 			'REFERENCE_TIMESTAMP' => $ref_timestamp,
 			'DID_CHECK_EXISTS' => true
 		);
 
-		if (isset($_POST['version_number']))	$updateValues['version']	= $_POST['version_number'];
-		if (isset($_POST['build_number']))	$updateValues['build']		= $_POST['build_number'];
-		if (isset($_POST['download_url']))	$updateValues['download']	= $_POST['download_url'];
-		if (isset($_POST['bytes']))			$updateValues['bytes']		= $_POST['bytes'];
-		if (isset($_POST['signature']))		$updateValues['signature']	= $_POST['signature'];
-		if (isset($_POST['release_notes']))	$updateValues['notes']		= $_POST['release_notes'];
+		if (isset($_POST['version_number'])) $updateValues['version']   = $_POST['version_number'];
+		if (isset($_POST['build_number']))   $updateValues['build']     = $_POST['build_number'];
+		if (isset($_POST['download_url']))   $updateValues['download']  = $_POST['download_url'];
+		if (isset($_POST['bytes']))          $updateValues['bytes']     = $_POST['bytes'];
+		if (isset($_POST['signature']))      $updateValues['signature'] = $_POST['signature'];
+		if (isset($_POST['release_notes']))  $updateValues['notes']     = $_POST['release_notes'];
 		
 		if ($Shimmer->versions->exists($app, array('timestamp'=>$ref_timestamp) )) {
-			$versionUpdated = $Shimmer->versions->update($app, $updateValues);
-			
-			if ($versionUpdated) {
-				$returnArray['wasOK'] = true;
-			} else $returnArray['reason'] = "Could not update version";
+			if ( !$Shimmer->versions->incrementExists($app,($app['incrementType']=='build'?$_POST['build_number']:$_POST['version_number']), $ref_timestamp) ) {
+				if ($Shimmer->versions->update($app, $updateValues)) {
+					$returnArray['wasOK'] = true;
+				} else $returnArray['reason'] = "Could not update version";
+			} else {
+				$returnArray['reason'] = "Version already exists";
+				$returnArray['versionAlreadyExists'] = true;
+			}
 		} else $returnArray['reason'] = "Reference version does not exist";
 	} else $returnArray['reason'] = "Supplied app does not exist";
 } else if ( $action == "app.delete.version" ) {
@@ -231,6 +236,7 @@ if ($action=="get.data.many") {
 	$identifier		= (isset($_POST['identifier']) ? $_POST['identifier'] : 'ip');
 	$publicKeySess  = $_POST['publicKey'];
 	$privateKeySess = $_POST['privateKey'];
+	$incrementType  = $_POST['incrementType'];
 	
 	include_once('jsonhelper.php');
 	$params = json_decode(prepareJsonStringForDecoding($paramJson), true);
@@ -284,6 +290,7 @@ if ($action=="get.data.many") {
 						'downloadMask' => $downloadMask,
 						'notesMask'    => $notesMask
 					));
+					$Shimmer->apps->setAppIncrementType($appReference, $incrementType);
 					
 					// Try to read the uploaded DSA keys from the tmp/ folder
 					$Shimmer->apps->loadSignatureKeysForApp($appReference, array(
@@ -292,7 +299,7 @@ if ($action=="get.data.many") {
 					));
 					$returnArray['wasOK'] = true;
 					
-					// Todo reference base for proper include location
+					// Todo: reference base for proper include location
 					include_once('workers/worker_data.php');
 					$dataWorker = new DataWorker();
 					$refreshedAppList = $dataWorker->getAppList();

@@ -24,10 +24,10 @@ class AppManager {
 								'default.shimmer.xml';
 				$notesMask 	  = $this->Shimmer->isURL($app['notes_mask']) ?
 								$app['notes_mask'] :
-								$this->Shimmer->baseURL . '?notes&app=_APP_&version=_VER_&build=_BUILD_';
+								$this->Shimmer->baseURL . '?notes&appName=_APP_&appVersion=_VER_';
 				$downloadMask = $this->Shimmer->isURL($app['download_mask']) ?
 								$app['download_mask'] :
-								$this->Shimmer->baseURL . '?download&app=_APP_&version=_VER_&build=_BUILD_';
+								$this->Shimmer->baseURL . '?download&appName=_APP_&appVersion=_VER_';
 								
 				array_push($newApps, array(
 					'name'				=>	$app['name'],
@@ -41,9 +41,10 @@ class AppManager {
 					'downloadMask'		=>	$downloadMask,
 					'usesSparkle'		=>	($app['uses_sparkle']=='1' ? true : false),
 					'identifier'		=>	$this->getIdentifier(array(
-																	'users_table'	=> $app['users'],
-																	'identifier'	=> $app['identifier']
-																))
+												'users_table' => $app['users'],
+												'identifier'  => $app['identifier']
+											)),
+					'incrementType'		=>	$this->getIncrementType(array('incrementType'	=> $app['increment_type']))
 				));
 			}
 			$this->list = $newApps;
@@ -146,21 +147,17 @@ class AppManager {
 			if (!$this->appFromNameAndVariant($name, $variant)) {
 				$sql = "INSERT INTO `applications` (`name`, `variant`, `creation_date`, `uses_sparkle`) VALUES ('" . sql_safe($name) . "','" . sql_safe($variant) . "','" . sql_safe(date('Y-m-d')) . "'," . ($usesSparkle ? '1' : '0') . ")";
 				if ($this->Shimmer->query($sql)) {
-					// todo: look into uses mysql_affected_rows to get this `id' value from the insertion result
-					$sql = "SELECT `id` FROM `applications` WHERE (`name`='" . sql_safe($name) . "') AND (`variant`='" . sql_safe($variant) . "') LIMIT 1";
-					if ($row = $this->Shimmer->querySelect($sql, true)) {
-						$newID = $row['id'];
-						$versionsTable = "versions_" . $newID;
-						$usersTable    = "users_"    . $newID;
-						
-						if ($this->Shimmer->table->createVersionTable($versionsTable) && $this->Shimmer->table->createUserTable($usersTable, $usesSparkle)) {
-							$sql = "UPDATE `applications` SET `table`='" . $versionsTable . "', `users`='" . $usersTable . "' WHERE (`id`='" . $newID . "') LIMIT 1";
-							if ($this->Shimmer->query($sql)) {
-								$this->loadAppsList();
-								return $this->appFromID($newID);
-							}
+					$newID = mysql_insert_id();
+					$versionsTable = "versions_" . $newID;
+					$usersTable    = "users_"    . $newID;
+					
+					if ($this->Shimmer->table->createVersionTable($versionsTable) && $this->Shimmer->table->createUserTable($usersTable, $usesSparkle)) {
+						$sql = "UPDATE `applications` SET `table`='" . $versionsTable . "', `users`='" . $usersTable . "' WHERE (`id`='" . $newID . "') LIMIT 1";
+						if ($this->Shimmer->query($sql)) {
+							$this->loadAppsList();
+							return $this->appFromID($newID);
 						}
-					}	
+					}
 				}
 			}
 		}
@@ -174,8 +171,10 @@ class AppManager {
 		$this->Shimmer->query($deleteUsersSql);
 
 		$deleteRowSql = "DELETE FROM `applications` WHERE `table`='" . sql_safe($app['versions_table']) . "'";
-		$result = $this->Shimmer->query($deleteRowSql);
-		if ($result) return true;
+		if ($this->Shimmer->query($deleteRowSql)) {
+			$this->loadAppsList();
+			return true;
+		}
 		return false;
 	}
 	
@@ -234,7 +233,30 @@ class AppManager {
 		if ($this->Shimmer->query($sql)) {
 			$app['identifier'] = $identifier;
 			$this->updateStatIndexesForApp($app);
+			$this->loadAppsList();
 			return true;
+		}
+		return false;
+	}
+	
+	// Returns the Increment Type for the App. Ensures that a valid value is returned.
+	// Falls back to 'version' if an error is found. Return value is always lowercase.
+	function getIncrementType($app) {
+		$incrementType = strtolower($app['incrementType']);
+		if ($incrementType=='version' || $incrementType=='build') return $incrementType;
+		return 'version';
+	}
+	
+	// Allowed values are 'version' and 'build'. Value is not updated if invalid value passed.
+	function setAppIncrementType($app, $incrementType) {
+		$incrementType = strtolower($incrementType);
+		if ($incrementType=='version' || $incrementType=='build') {
+			$sql = "UPDATE `applications` SET `increment_type`='" . sql_safe($incrementType) . "' WHERE `id`='" . sql_safe($app['id']) . "'";
+			if ($this->Shimmer->query($sql)) {
+				$app['incrementType'] = $incrementType;
+				$this->loadAppsList();
+				return true;
+			}
 		}
 		return false;
 	}
