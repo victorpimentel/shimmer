@@ -753,6 +753,7 @@ ul#applist li.appname {
 ul#applist li.appname span {
 	display:block;
 	padding: 3px 10px;
+	white-space:nowrap;
 }
 
 ul#applist li.appname:first-child {

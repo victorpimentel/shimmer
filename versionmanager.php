@@ -149,7 +149,7 @@ class VersionManager {
 	
 	function incrementExists($app, $incrementNumber, $excludeTimestamp=false) {
 		if (strlen($incrementNumber)>0) {
-			$sql = "SELECT COUNT(*) AS 'version_count' FROM `" . sql_safe($app['versions_table']) . "` WHERE `" . $app['incrementType'] . "`='" . sql_safe($incrementNumber) . "'";
+			$sql = "SELECT COUNT(*) AS 'version_count' FROM `" . sql_safe($app['versions_table']) . "` WHERE `" . $app['incrementType'] . "`='" . sql_safe($incrementNumber) . "' AND `live`=1";
 			if ($excludeTimestamp) $sql .= " AND NOT `published`='" . $excludeTimestamp . "'";
 			if ($row = $this->Shimmer->querySelect($sql, true)) {
 				if (intval($row['version_count'])>0) return true;
