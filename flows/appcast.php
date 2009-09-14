@@ -73,7 +73,8 @@ function refreshUser($app,$sparkleParams,$columnRestrictions) {
 	global $Shimmer;
 	
 	// Prevent spoofing of app version
-	if ($Shimmer->versions->incrementExists($app, $sparkleParams['appversion'])) {
+	$existingIncrement = $Shimmer->versions->versionAndBuildForIncrement($app, $sparkleParams['appversion']);
+	if ($existingIncrement) {
 		$theIP = $Shimmer->requestIP();
 		
 		// Find the unique Identifier for the request
@@ -97,8 +98,12 @@ function refreshUser($app,$sparkleParams,$columnRestrictions) {
 				if ( strlen($paramValue)>0 ) {
 					// Do extra processing for version numbers.
 					if ( $paramName == "appversion" ) {
-						array_push( $newValues, array('name'=>"last_version", 'value'=>$paramValue) );
-						if (!$userAlreadyExists) array_push( $newValues, array('name'=>"first_version", 'value'=>$paramValue) );
+						if ($existingIncrement['version']) array_push( $newValues, array('name'=>'last_version', 'value'=>$existingIncrement['version']) );
+						if ($existingIncrement['build'])   array_push( $newValues, array('name'=>'last_build',   'value'=>$existingIncrement['build']) );
+						if (!$userAlreadyExists) {
+							if ($existingIncrement['version']) array_push( $newValues, array('name'=>'first_version', 'value'=>$existingIncrement['version']) );
+							if ($existingIncrement['build'])   array_push( $newValues, array('name'=>'first_build',   'value'=>$existingIncrement['build']) );
+						}
 					} else if ( in_array($paramName, $columnRestrictions) ){
 						array_push( $newValues, array('name'=>$paramName, 'value'=>$paramValue) );
 					}

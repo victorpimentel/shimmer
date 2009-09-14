@@ -85,7 +85,8 @@ class VersionManager {
 	function versionUsers($app,$version) {
 		if (!array_key_exists($app['name'],$this->knownVersions)) { // reload the version number cache for the supplied app if needed
 			$cutoff = date('Y-m-d', time()-(86400*30));
-			$versionsSql = "SELECT `last_version` as 'version', COUNT(*) AS 'users_count' FROM `" . sql_safe($app['users_table']) . "` WHERE `last_seen`>='" . sql_safe($cutoff) . "' GROUP BY `last_version`";
+			$incrementColumn = ($app['incrementType']=='build'?'last_build':'last_version');
+			$versionsSql = "SELECT `" . $incrementColumn . "` as 'version', COUNT(*) AS 'users_count' FROM `" . sql_safe($app['users_table']) . "` WHERE `last_seen`>='" . sql_safe($cutoff) . "' GROUP BY `" . $incrementColumn . "`";
 			$versionsResult = $this->Shimmer->query($versionsSql);
 			if ($versionsResult) {
 				$versionList = array();
@@ -102,8 +103,9 @@ class VersionManager {
 			}
 		}
 
+		$incrementKey = ($app['incrementType']=='build'?'build':'version');
 		foreach ($this->knownVersions[$app['name']] as $versionPair) {
-			if ($versionPair['version']==$version['version']) return intval($versionPair['users']);
+			if ($versionPair['version']==$version[$incrementKey]) return intval($versionPair['users']);
 		}
 		return 0;
 	}
@@ -142,6 +144,21 @@ class VersionManager {
 					$row = mysql_fetch_array($result);
 					if (intval($row['version_count'])>0) return true;
 				}
+			}
+		}
+		return false;
+	}
+	
+	function versionAndBuildForIncrement($app, $incrementNumber, $onlyLive=true) {
+		if (strlen($incrementNumber)>0) {
+			$sql = "SELECT `version`,`build` FROM `" . sql_safe($app['versions_table']) . "` WHERE `" . $app['incrementType'] . "`='" . sql_safe($incrementNumber) . "'";
+			if ($onlyLive) $sql .= "AND `live`=1";
+			$sql .= " LIMIT 1";
+			if ($row = $this->Shimmer->querySelect($sql, true)) {
+				return array(
+					'version' => $row['version'],
+					'build'   => $row['build']
+				);
 			}
 		}
 		return false;

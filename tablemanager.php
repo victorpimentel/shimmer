@@ -46,11 +46,13 @@ class TableManager {
 		$sql = "CREATE TABLE IF NOT EXISTS `" . $tableName . "` (";
 		
 		// Add the mandatory Parameter columns
-		$sql .= "  `ip`				VARCHAR(15)		NOT NULL"; // PRIMARY KEY
-		$sql .= ", `last_version`	VARCHAR(10)		NOT NULL";
-		$sql .= ", `first_version`	VARCHAR(10)		NOT NULL";
-		$sql .= ", `last_seen`		DATE			NOT NULL";
-		$sql .= ", `first_seen`		DATE			NOT NULL";
+		$sql .= "  `ip`            VARCHAR(15) NOT NULL";
+		$sql .= ", `last_version   VARCHAR(10) NOT NULL";
+		$sql .= ", `last_build`    VARCHAR(10) NOT NULL";
+		$sql .= ", `first_version` VARCHAR(10) NOT NULL";
+		$sql .= ", `first_build`   VARCHAR(10) NOT NULL";
+		$sql .= ", `last_seen`     DATE        NOT NULL";
+		$sql .= ", `first_seen`    DATE        NOT NULL";
 
 		// Finish off the table, and create it
 		$sql .= ") CHARACTER SET utf8 COLLATE utf8_unicode_ci";
