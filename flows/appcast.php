@@ -169,7 +169,7 @@ function sparkleParameters($app, $columnRestrictions) {
 
 	// Only add an entry if certain Parameters are present. This includes a non-IP Identifier Parameter.
 	$mandatoryParameters = array("appversion");
-	if ($app['identifier']!="ip") array_push($mandatoryParameters, $app['identifier']);
+	if ($app['identifier']!="ip") array_push($mandatoryParameters, strtolower($app['identifier']));
 	
 	foreach ($mandatoryParameters as $mandatoryParamName) {
 		$lowercaseParamName = strtolower($mandatoryParamName);
