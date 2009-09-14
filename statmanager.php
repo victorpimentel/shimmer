@@ -58,7 +58,7 @@ class StatManager {
 		$existingParameters = $this->parametersForApp($app);
 
 		// A list of Parameter names which users are not allowed to enter. Reserved + Sparkle.
-		$reservedParameters = array('ip', 'last_version', 'first_version', 'last_seen', 'first_seen');
+		$reservedParameters = array('ip', 'last_version', 'last_build', 'first_version', 'first_build', 'last_seen', 'first_seen');
 		foreach ($this->sparkleParameterDefinitions() as $sparkleParamName) $reservedParameters[] = $sparkleParamName;
 		
 		$newParams			= array(); // flat list of Param names

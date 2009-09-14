@@ -618,7 +618,7 @@ appsUI.form = {
 		
 		// Checks that no Parameters have been entered that use reserved Param name. ie. 'ip', etc.
 		checkForReservedUsage: function() {
-			var reservedParams = ['ip', 'last_version', 'first_version', 'last_seen', 'first_seen'];
+			var reservedParams = ['ip', 'last_version', 'last_build', 'first_version', 'first_build', 'last_seen', 'first_seen'];
 			for (var s=0; s < appsUI.form.sparkleParameters.length; s++) {
 				reservedParams.push(appsUI.form.sparkleParameters[s].toLowerCase());
 			};
