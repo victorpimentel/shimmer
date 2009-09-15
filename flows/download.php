@@ -31,7 +31,7 @@ if ( isset($version) && isset($appName) ) {
 			}
 			header('Location: ' . $downloadURL);
 			$newCount = intval($theVersion['download_count']) + 1;
-			$updateSql = "UPDATE `" . sql_safe($app['versions_table']) . "` SET `download_count`=" . sql_safe($newCount) . " WHERE `" . $app['incrementType'] . "`='" . sql_safe($appVersion) . "' LIMIT 1";
+			$updateSql = "UPDATE `" . sql_safe($app['versions_table']) . "` SET `download_count`=" . sql_safe($newCount) . " WHERE `" . $app['incrementType'] . "`='" . sql_safe($version) . "' LIMIT 1";
 			$Shimmer->query($updateSql);
 		} else echo 'Download link could not be found, because the version does not exist.';
 		$Shimmer->rates->processVersionRates($app['id']);

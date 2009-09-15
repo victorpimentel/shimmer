@@ -21,7 +21,7 @@ class RateManager {
 					break;
 				}
 			}
-			if (!isset($daysPerGroup)) $daysPerGroup = floor(sizeof($dataArray)/7);
+			if (!isset($daysPerGroup) || $daysPerGroup==0) $daysPerGroup = floor(sizeof($dataArray)/7);
 
 			// Now we create 7 data points, grouping multiple days into each point
 			if ($daysPerGroup>0) {

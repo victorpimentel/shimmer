@@ -273,7 +273,7 @@ class Shimmer {
 	function query($sql) {
 		$result = mysql_query($sql);
 		
-		if (isset($_GET['debug']) && $this->auth->authenticated) {
+		if ((isset($_GET['debug']) || isset($_GET['debug_plain'])) && $this->auth->authenticated) {
 			$trace=debug_backtrace();
 			$traces = array();
 			foreach ($trace as $caller) {
@@ -309,14 +309,18 @@ class Shimmer {
 	
 	// When in debug mode, prints out all previous SQL queries
 	function dumpQueries() {
-		if (count($this->allQueries)>0 && (isset($_GET['debug']) && $this->auth->authenticated)) {
-			echo '<table border="0" style="font-size:12px;margin-top:0.5em;">';
-			foreach ($this->allQueries as $query) {
-				echo "<tr>";
-				echo "<td valign=top><img src=\"img/" . ($query['worked'] ? 'plus_small.png' : 'minus_small.png') . "\" /></td>";
-				echo "<td>" . $query['query'] . "<div style=\"font-size:10px;padding-left:10px;\">" . implode("<br>", $query['traces']) . "</div></td></tr>";
+		if (count($this->allQueries)>0 && $this->auth->authenticated) {
+			if (isset($_GET['debug'])) {
+				echo '<table border="0" style="font-size:12px;margin-top:0.5em;">';
+				foreach ($this->allQueries as $query) {
+					echo "<tr>";
+					echo "<td valign=top><img src=\"img/" . ($query['worked'] ? 'plus_small.png' : 'minus_small.png') . "\" /></td>";
+					echo "<td>" . $query['query'] . "<div style=\"font-size:10px;padding-left:10px;\">" . implode("<br>", $query['traces']) . "</div></td></tr>";
+				}
+				echo '</table>';
+			} else if (isset($_GET['debug_plain'])) {
+				foreach ($this->allQueries as $query) echo "\n\nOK:" . ($query['worked'] ? '1' : '0') . "\n" . $query['query'];
 			}
-			echo '</table>';
 		}
 	}
 	
