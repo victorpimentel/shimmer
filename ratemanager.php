@@ -17,7 +17,7 @@ class RateManager {
 			// Work out how many days should be grouped into each of the final 7 data points
 			foreach ($dataArray as $index => $value) {
 				if ($value['count']==0) {
-					$daysPerGroup = floor($index/7);
+					$daysPerGroup = ($index<7 ? 1 : floor($index/7));
 					break;
 				}
 			}
