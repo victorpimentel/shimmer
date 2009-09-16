@@ -83,7 +83,7 @@ class VersionManager {
 
 	// Finds the number of users for a particular version //
 	function versionUsers($app,$version) {
-		if (!array_key_exists($app['name'],$this->knownVersions)) { // reload the version number cache for the supplied app if needed
+		if (!array_key_exists($app['id'],$this->knownVersions)) { // reload the version number cache for the supplied app if needed
 			$cutoff = date('Y-m-d', time()-(86400*30));
 			$incrementColumn = ($app['incrementType']=='build'?'last_build':'last_version');
 			$versionsSql = "SELECT `" . $incrementColumn . "` as 'version', COUNT(*) AS 'users_count' FROM `" . sql_safe($app['users_table']) . "` WHERE `last_seen`>='" . sql_safe($cutoff) . "' GROUP BY `" . $incrementColumn . "`";
@@ -99,12 +99,12 @@ class VersionManager {
 						));
 					}
 				}
-				$this->knownVersions[$app['name']] = $versionList;
+				$this->knownVersions[$app['id']] = $versionList;
 			}
 		}
 
 		$incrementKey = ($app['incrementType']=='build'?'build':'version');
-		foreach ($this->knownVersions[$app['name']] as $versionPair) {
+		foreach ($this->knownVersions[$app['id']] as $versionPair) {
 			if ($versionPair['version']==$version[$incrementKey]) return intval($versionPair['users']);
 		}
 		return 0;

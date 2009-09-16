@@ -247,7 +247,7 @@ class StatManager {
 	///////////////////////////////////////////////////////////////////////////////
 
 	function graphsForApp($app, $includeSparkle=false) {
-		$appID = $app['name'];
+		$appID = $app['id'];
 		if (!isset($this->graphCache[$appName])) {
 			$didRetrieve = false;
 			$sql = "SELECT `graphs` FROM `applications` WHERE `id`='" . sql_safe($appID) . "' LIMIT 1";
