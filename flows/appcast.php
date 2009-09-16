@@ -30,10 +30,11 @@ if ( isset($appName) ) {
 						$sparkleVersionCode = 'sparkle:version="' . $versionNumber . '"';
 					}
 					include_once('completemask.php');
-					$notesLink		= completeMask($notesMask,		$app, $version);
-					$downloadLink	= completeMask($downloadMask,	$app, $version);
+					$notesLink    = completeMask($notesMask,    $app, $version);
+					$downloadLink = completeMask($downloadMask, $app, $version);
 				
-					if (isset($minVersion)) $notesLink .= "?minVersion=$minVersion";
+					// Tack the user's own version on the release notes URL, so that they can see notes for multiple versions.
+					if (isset($minVersion)) $notesLink = $Shimmer->appendParameterToURL($notesLink, 'minVersion=' . $minVersion, true);
 
 					echo "\n\n\t\t<item>\n\t\t\t<title>$appName " . $version['version'] . "</title>\n\t\t\t<pubDate>" . date(DATE_RSS,$version['published']) . "</pubDate>\n\t\t\t<sparkle:releaseNotesLink><![CDATA[" . $notesLink . "]]></sparkle:releaseNotesLink>\n\t\t\t<enclosure\n\t\t\t\tsparkle:dsaSignature=\"" . $version['signature'] . "\"\n\t\t\t\t" . $sparkleVersionCode . "\n\t\t\t\turl=\"" . $downloadLink . "\"\n\t\t\t\tlength=\"" . $version['size'] . "\"\n\t\t\t\ttype=\"application/octet-stream\" />\n\t\t</item>";
 				}

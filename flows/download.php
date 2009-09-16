@@ -22,12 +22,11 @@ if ( isset($version) && isset($appName) ) {
 			if (sizeof($_GET)-$paramCount>0) {
 				$extraParameters = array();
 				foreach($_GET as $variable => $value) {
-					if ($variable!='download' && $variable!='app' && $variable!='version' && $variable!='build') {
-						array_push($extraParameters, "$variable=$value");
+					if ($variable!='download' && $variable!='appName' && $variable!='appVariant' && $variable!='appVersion') {
+						array_push($extraParameters, $variable . '=' .  ($value ? $value : ''));
 					}
 				}
-				$downloadURL .= preg_match('/\?(&?[^=]+=[^=]+)*$/', $downloadURL) ? '&' : '?';
-				$downloadURL .= implode('&',$extraParameters);
+				$downloadURL = $Shimmer->appendParameterToURL($downloadURL, implode('&',$extraParameters));
 			}
 			header('Location: ' . $downloadURL);
 			$newCount = intval($theVersion['download_count']) + 1;

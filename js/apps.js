@@ -104,11 +104,12 @@ apps = {
 			var theApp = apps.appsHub.dictionaryForAppWithID(appID);
 			if (theApp) {
 				apps.appsHub.currentAppID = theApp.id;
-				$('current_app_title').innerHTML = theApp.info.name + ' <small>' + theApp.info.count + ' users</small>';
+				var appNameWithParens = theApp.info.name + (theApp.info.variant.length>0 ? (' (' + theApp.info.variant + ')') : '');
+				$('current_app_title').innerHTML = appNameWithParens + ' <small>' + theApp.info.count + ' user' + (theApp.info.count=='1' ? '' : 's') + '</small>';
 				versions.reloadVersionsForApp(apps.appsHub.currentAppID);
 				
 				var newHash  = theApp.id + ':' + theApp.info.name;
-				var newTitle = 'Shimmer: ' + theApp.info.name + (theApp.info.variant.length>0 ? (' (' + theApp.info.variant + ')') : '')
+				var newTitle = 'Shimmer: ' + appNameWithParens
 				Shimmer.state.setPageTitle(newHash, newTitle);
 				
 				if (1==1 || reloadVersionsToo) {

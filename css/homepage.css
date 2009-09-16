@@ -1509,12 +1509,12 @@ div#notify a:hover {
 	text-decoration:underline;
 }
 
-#focus_content a.dsa-choose-link {
+#focus_content a.action-choose-link {
 	color:blue;
 	text-decoration:none;
 }
 
-#focus_content a.dsa-choose-link:hover { color:#00C; }
+#focus_content a.action-choose-link:hover { color:#00C; }
 
 #focus_content h6 span.sparkle-message {
 	font-size:10px;

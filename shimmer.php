@@ -407,6 +407,9 @@ class Shimmer {
 		return $content;
 	}
 	
+	function appendParameterToURL($url, $parameterAssignment, $escapeAppendCharacter=false) {
+		return $url .= (preg_match('/\?(&?[^=]+(=[^=]+)?)*$/', $url) ? ($escapeAppendCharacter ? '&amp;' : '&') : '?') . $parameterAssignment;
+	}
 }
 
 

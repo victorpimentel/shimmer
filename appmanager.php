@@ -24,10 +24,10 @@ class AppManager {
 								'default.shimmer.xml';
 				$notesMask 	  = $this->Shimmer->isURL($app['notes_mask']) ?
 								$app['notes_mask'] :
-								$this->Shimmer->baseURL . '?notes&appName=_APP_&appVersion=_VER_';
+								$this->Shimmer->baseURL . '?notes&appName=_APP_&appVariant=_VARIANT_&appVersion=_RELEASE_';
 				$downloadMask = $this->Shimmer->isURL($app['download_mask']) ?
 								$app['download_mask'] :
-								$this->Shimmer->baseURL . '?download&appName=_APP_&appVersion=_VER_';
+								$this->Shimmer->baseURL . '?download&appName=_APP_&appVariant=_VARIANT_&appVersion=_RELEASE_';
 								
 				array_push($newApps, array(
 					'name'				=>	$app['name'],

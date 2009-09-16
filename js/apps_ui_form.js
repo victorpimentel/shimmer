@@ -113,7 +113,13 @@ appsUI.form = {
 		}
 		
 		code += '        </select></td></tr>';
-		code += '        <tr><th>Variant</th><td><input type="text" id="app-variant" value="' + (variant ? variant : '') + '" />';
+		
+		var variantSet = (variant && variant.length>0);
+		code += '        <tr><th>Variant</th><td>';
+		code += '          <input type="text" id="app-variant" value="' + (variantSet ? variant : '') + '"' + (!variantSet ? ' style="display:none;"':'') + ' />';
+		if (!variantSet) code += '<span>No variant set. <a href="#EnterVariant" onclick="this.parentNode.hide();$(\'app-variant\').show();$(\'app-variant\').focus();return false;" class="action-choose-link">Enter variant...</a></span>';
+		code += '        </td></tr>';
+		
 		code += '        <tr><th>Increment Type</th><td><select id="app-increment-type">';
 		code += '          <option value="version"' + (incrementType=='version' ? ' SELECTED' : '') + '>Version Number</option>';
 		code += '          <option value="build"'   + (incrementType=='build'   ? ' SELECTED' : '') + '>Build Number (CFBundleVersion)</option>';
@@ -135,9 +141,9 @@ appsUI.form = {
 		code += '          <form action="?ajax&type=dsa&action=upload.public" method="post" target="' + dsa.publicFrame + '" id="' + dsa.publicForm + '" enctype="multipart/form-data">';
 		code += '            <span id="' + dsa.publicKeyStatusId + '">';
 		if (!pubSet) {
-			code += '<a href="#ChooseDSA" onclick="dsa.showChooser(dsa.pub);return false;" class="dsa-choose-link">Choose...</a>';
+			code += '<a href="#ChooseDSA" onclick="dsa.showChooser(dsa.pub);return false;" class="action-choose-link">Choose...</a>';
 		} else {
-			code += 'Already Set. <a href="#ChooseDSA" onclick="dsa.showChooser(dsa.pub);return false;" class="dsa-choose-link">Choose again...</a>';
+			code += 'Already Set. <a href="#ChooseDSA" onclick="dsa.showChooser(dsa.pub);return false;" class="action-choose-link">Choose again...</a>';
 		}
 		code += '            </span>';
 		code += '            <input type="hidden" id="' + dsa.publicTimestampInput + '" name="' + dsa.timestampInputBase + '" />';
@@ -152,9 +158,9 @@ appsUI.form = {
 		code += '          <form action="?ajax&type=dsa&action=upload.private" method="post" target="' + dsa.privateFrame + '" id="' + dsa.privateForm + '" enctype="multipart/form-data">';
 		code += '            <span id="' + dsa.privateKeyStatusId + '">';
 		if (!privSet) {
-			code += '<a href="#ChooseDSA" onclick="dsa.showChooser(dsa.priv);return false;" class="dsa-choose-link">Choose...</a>';
+			code += '<a href="#ChooseDSA" onclick="dsa.showChooser(dsa.priv);return false;" class="action-choose-link">Choose...</a>';
 		} else {
-			code += 'Already Set. <a href="#ChooseDSA" onclick="dsa.showChooser(dsa.priv);return false;" class="dsa-choose-link">Choose again...</a>';
+			code += 'Already Set. <a href="#ChooseDSA" onclick="dsa.showChooser(dsa.priv);return false;" class="action-choose-link">Choose again...</a>';
 		}
 		code += '            </span>';
 		code += '            <input type="hidden" id="' + dsa.privateTimestampInput + '" name="' + dsa.timestampInputBase + '" />';
@@ -172,6 +178,7 @@ appsUI.form = {
 		code += '      <table>';
 		code += '        <tr><th>Download</th><td><input type="text" id="download-mask" value="'	+ downloadMask	+ '" onkeyup="$(\'test-masks-message\').hide();$(\'test-masks-link\').show();" /></td></tr>';
 		code += '        <tr><th>Notes</th><td><input type="text" id="notes-mask" value="'	+ notesMask		+ '" onkeyup="$(\'test-masks-message\').hide();$(\'test-masks-link\').show();" /></td></tr>';
+		code += '        <tr><th></th><td colspan="2"><small>Placeholders: _APP_ / _VARIANT_ / _RELEASE_</small></td></tr>';
 		code += '      </table>';
 		code += '    </div>';
 		

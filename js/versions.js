@@ -122,8 +122,7 @@ versions = {
 			Shimmer.hideWelcomeArea(function() { reloadVersionsForApp_handleResponse(allVersions) });
 			return false;
 		}
-
-		if (allVersions.length > 0) {
+		if (allVersions && allVersions.length > 0) {
 			newCode += '<div id="versions_table_container"' + (!Shimmer.loaded ? ' style="display:none;"' : '') + '>';
 			newCode += '<div id="versions-table">';
 			for (var i=0;i<allVersions.length;i++) {
@@ -205,7 +204,7 @@ versions = {
 			} });
 		}
 		versions.updateSelectedVersionClasses();
-			
+
 		versions.isReloadingVersions = false;
 		apps.refreshReloadTimer();
 

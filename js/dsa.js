@@ -98,7 +98,7 @@ dsa = {
 	},
 	
 	showChooseStatusForType: function(type) {
-		var status = '<a href="#ChooseDSA" onclick="dsa.showChooser(dsa.' + (type==dsa.pub ? 'pub' : 'priv') + ');return false;" class="dsa-choose-link">Choose...</a>'
+		var status = '<a href="#ChooseDSA" onclick="dsa.showChooser(dsa.' + (type==dsa.pub ? 'pub' : 'priv') + ');return false;" class="action-choose-link">Choose...</a>'
 		dsa.setStatusForType(type, status);
 	},
 	
@@ -115,7 +115,7 @@ dsa = {
 		if (result.updated) {
 			var theType = (result.type=='public' ? dsa.pub : dsa.priv);
 			if (result.failed) {
-				dsa.setStatusForType(theType, 'Upload failed. Please <a href="#ChooseDSA" onclick="dsa.showChooser(' + theType + ');return false;" class="dsa-choose-link">try again</a>.');
+				dsa.setStatusForType(theType, 'Upload failed. Please <a href="#ChooseDSA" onclick="dsa.showChooser(' + theType + ');return false;" class="action-choose-link">try again</a>.');
 				notify.hide('key-stalled');
 				dsa.setUsedStampForType(theType, '');
 				return false;
@@ -125,7 +125,7 @@ dsa = {
 				dsa.setUsedStampForType(theType, result.session);
 				return false;
 			} else if (result.key_ok==false) {
-				dsa.setStatusForType(theType, 'The key was invalid. Please <a href="#ChooseDSA" onclick="dsa.showChooser(' + theType + ');return false;" class="dsa-choose-link">try again</a>.');
+				dsa.setStatusForType(theType, 'The key was invalid. Please <a href="#ChooseDSA" onclick="dsa.showChooser(' + theType + ');return false;" class="action-choose-link">try again</a>.');
 				notify.update((theType==dsa.pub ? 'Public' : 'Private') + ' key was not valid.',5);
 				dsa.setUsedStampForType(theType, result.session);
 				return false;

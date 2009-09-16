@@ -59,25 +59,23 @@ if ($action == "preferences.save") {
 	}
 } else if ($action=="prefs.masks.test") {
 	include_once('completemask.php');
-	$downloadMask	= $_GET['downloadMask'];
-	$notesMask		= $_GET['notesMask'];
+	$downloadMask = $_GET['downloadMask'];
+	$notesMask    = $_GET['notesMask'];
 
-	$returnArray['downloadWorking']	= false;
-	$returnArray['notesWorking']	= false;
+	$returnArray['downloadWorking'] = false;
+	$returnArray['notesWorking']    = false;
 	
-	$app		= array('name'=>'Test');
-	$version	= array('version'=>'1.0', 'build'=>'1');
+	$app     = array('name'=>'Test');
+	$version = array('version'=>'1.0', 'build'=>'1');
 	
-	$downloadURL	= completeMask($downloadMask,	$app, $version);
-	$downloadURL	.= preg_match('/\?(&?[^=]+=[^=]+)*$/', $downloadURL) ? '&' : '?';
-	$downloadURL	.= "loudandclear";
+	$downloadURL = completeMask($downloadMask, $app, $version);
+	$downloadURL = $Shimmer->appendParameterToURL($downloadURL, 'loudandclear');
 	
-	$notesURL		= completeMask($notesMask,		$app, $version);
-	$notesURL		.= preg_match('/\?(&?[^=]+=[^=]+)*$/', $notesURL) ? '&' : '?';
-	$notesURL		.= "loudandclear";
+	$notesURL = completeMask($notesMask, $app, $version);
+	$notesURL = $Shimmer->appendParameterToURL($notesURL, 'loudandclear');
 
-	if ($Shimmer->readURL($downloadURL,	true)	=="LOUDANDCLEAR") $returnArray['downloadWorking']	= true;
-	if ($Shimmer->readURL($notesURL,	true)	=="LOUDANDCLEAR") $returnArray['notesWorking']		= true;
+	if ($Shimmer->readURL($downloadURL, true)=="LOUDANDCLEAR") $returnArray['downloadWorking'] = true;
+	if ($Shimmer->readURL($notesURL,    true)=="LOUDANDCLEAR") $returnArray['notesWorking']    = true;
 	$returnArray['wasOK'] = true;
 } else {
 	$returnArray['reason'] = "Unknown action";

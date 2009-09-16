@@ -64,7 +64,7 @@ linkcenter = {
 		var options = $$('#' + appSelectId + ' option');
 		if (options && options.length>0) {
 			for (var i=0; i < options.length; i++) {
-				if (options[i].readAttribute('value')==linkcenter.selectedApp) {
+				if (options[i].readAttribute('value')==linkcenter.selectedAppID) {
 					$(appSelectId).selectedIndex = i;
 					break;
 				}
@@ -238,7 +238,7 @@ linkcenter = {
 		
 		appSelectCode: function(id, includeAllOption) {
 			if (typeof includeAllOption == "undefined") includeAllOption=false;
-			var code = '<select id=' + id + ' onchange="linkcenter.setSelectedApp(this.value);">';
+			var code = '<select id="' + id + '" onchange="linkcenter.setSelectedApp(this.value);">';
 
 			if (includeAllOption) code += '<option value="all">All Apps</option><hr />';
 
@@ -313,8 +313,9 @@ linkcenter = {
 		
 		fillMask: function() {
 			var appInfo = linkcenter.selectedAppInfo();
-			var mask    = Shimmer.util.baseLocation() + "?appcast&app=_APP_";
-			mask = mask.replace(/_APP_/g, appInfo.name);
+			var mask    = Shimmer.util.baseLocation() + "?appcast&appName=_APP_&appVariant=_VARIANT_";
+			mask = mask.replace(/_APP_/g,     appInfo.name);
+			mask = mask.replace(/_VARIANT_/g, appInfo.variant);
 			mask = mask.replace(/ /g, '%20');
 			$(linkcenter.appcasts.resultLocation).value = mask;
 		},
@@ -341,7 +342,7 @@ linkcenter = {
 		selectedVersion: function() { return linkcenter.selectedVersion(linkcenter.downloads.versionSelectId); },
 		
 		refreshVersions: function() {
-			$(linkcenter.downloads.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedApp, linkcenter.downloads.versionSelectId ,'linkcenter.downloads.fillMask()');
+			$(linkcenter.downloads.versionSelectContainer).innerHTML = linkcenter.cache.versionSelectCode(linkcenter.selectedAppID, linkcenter.downloads.versionSelectId ,'linkcenter.downloads.fillMask()');
 		},
 		
 		fillMask: function() {
@@ -349,7 +350,8 @@ linkcenter = {
 			var versionInfo = linkcenter.downloads.selectedVersion();
 			var mask = linkcenter.cache.masks(appInfo.id).download;
 			mask = mask.replace(/_APP_/g, appInfo.name);
-			mask = mask.replace(/_VER_/g, (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
+			mask = mask.replace(/_VARIANT_/g, appInfo.variant);
+			mask = mask.replace(/_RELEASE_/g, (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
 			mask = mask.replace(/ /g, '%20');
 			$(linkcenter.downloads.resultLocation).value = mask;
 		},
@@ -405,7 +407,8 @@ linkcenter = {
 			var compareInfo = linkcenter.notes.selectedCompare();
 			var mask = linkcenter.cache.masks(appInfo.id).notes;
 			mask = mask.replace(/_APP_/g, appInfo.name);
-			mask = mask.replace(/_VER_/g, (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
+			mask = mask.replace(/_VARIANT_/g, appInfo.variant);
+			mask = mask.replace(/_RELEASE_/g, (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
 			mask = mask.replace(/ /g, '%20');
 			
 			mask += (mask.match(/\?([^=]+(=[^&]*)?)(&[^=]+(=[^&]*)?)*$/) ? '&' : '?') + 'minVersion=' + (appInfo.incrementType=='build' ? compareInfo.build : compareInfo.version);
@@ -513,9 +516,10 @@ linkcenter = {
 				var fields      = linkcenter.api.selectedFields();
 				var callback    = $(linkcenter.api.callbackId).value;
 				
-				var mask = Shimmer.util.baseLocation() + "?api&app=_APP_&method=version.info&appVersion=_VER_&fields=_FIELDS_&callback=_CALLBACK_";
+				var mask = Shimmer.util.baseLocation() + "?api&appName=_APP_&appVariant=_VARIANT_&method=version.info&appVersion=_RELEASE_&fields=_FIELDS_&callback=_CALLBACK_";
 				mask = mask.replace(/_APP_/g,      appInfo.name);
-				mask = mask.replace(/_VER_/g,      (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
+				mask = mask.replace(/_VARIANT_/g,  appInfo.variant);
+				mask = mask.replace(/_RELEASE_/g,  (appInfo.incrementType=='build' ? versionInfo.build : versionInfo.version));
 				mask = mask.replace(/_FIELDS_/g,   fields.join(','));
 				mask = mask.replace(/_CALLBACK_/g, callback);
 				mask = mask.replace(/ /g,          '%20');
