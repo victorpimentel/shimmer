@@ -47,7 +47,7 @@ class TableManager {
 		
 		// Add the mandatory Parameter columns
 		$sql .= "  `ip`            VARCHAR(15) NOT NULL";
-		$sql .= ", `last_version   VARCHAR(10) NOT NULL";
+		$sql .= ", `last_version`  VARCHAR(10) NOT NULL";
 		$sql .= ", `last_build`    VARCHAR(10) NOT NULL";
 		$sql .= ", `first_version` VARCHAR(10) NOT NULL";
 		$sql .= ", `first_build`   VARCHAR(10) NOT NULL";
