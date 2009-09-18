@@ -7,16 +7,28 @@ calendar = {
 	currentYear:  2009,
 	currentMonth: 8,
 	
-	// White date has been actually chosen?
+	// Which date has been actually chosen?
 	chosenYear: 2009,
 	chosenMonth: 8,
 	chosenDay: 17,
+	
+	dateObjectFromComponents: function(year, month, day) {
+		var newDate = new Date();
+		newDate.setFullYear(year);
+		newDate.setMonth(month);
+		newDate.setDate(day);
+		console.log(newDate);
+		return newDate;
+	},
 	
 	setChosenDate: function(theDate) {
 		calendar.chosenYear  = theDate.getFullYear();
 		calendar.chosenMonth = theDate.getMonth();
 		calendar.chosenDay   = theDate.getDate();
 		calendar.setCurrentDate(theDate);
+		var timestamp = Math.round(theDate.getTime()/1000.0).toString();
+		versionsUI.parseNewVersionDateValue(calendar.chosenDay,calendar.chosenMonth,calendar.chosenYear, timestamp)
+		calendar.newDraw();
 	},
 	
 	setCurrentDate: function(theDate) {
@@ -104,7 +116,7 @@ calendar = {
 				classString = ' class="chosen"';
 			}
 
-			code += '<td' + classString + ' onclick="">' + incrementDate.getDate() + '</td>';
+			code += '<td' + classString + ' onclick="calendar.setChosenDate(calendar.dateObjectFromComponents(\'' + incrementDate.getFullYear() + '\',\'' + incrementDate.getMonth() + '\',\'' + incrementDate.getDate() + '\'))">' + incrementDate.getDate() + '</td>';
 	
 			incrementDate.setDate(incrementDate.getDate()+1);
 		};

@@ -157,7 +157,7 @@ versionsUI = {
 		versionsUI.showNewVersionForm();
 	},
 	
-	setToggleSwitchState: function(stateBool,date) {
+	setToggleSwitchState: function(stateBool, date) {
 		var toggleLive = $('toggle_live_icon');
 		var toggleLiveCode = 'javascript:versions.setVersionLive(\'' + apps.appsHub.currentAppID + '\',\'' + date + '\',' + (stateBool?0:1) + ');versionsUI.setToggleSwitchState(' + !stateBool + ',' + date + ');return false;';
 		toggleLive.writeAttribute('class','switchlive ' + (stateBool ? 'switchlive_On' : 'switchlive_Off') );
@@ -166,9 +166,9 @@ versionsUI = {
 		versions.reloadVersionsOnCancel = true;
 	},
 	
-	parseNewVersionDateValue: function(day,date,month,year) {
-		$('editDateLabel').innerHTML = versionsUI.formatVersionDateValue(day,date,month,year);
-		$('field_hidden_updated_timestamp').value = Shimmer.util.timestamp();
+	parseNewVersionDateValue: function(date, month, year, timestamp) {
+		$('editDateLabel').innerHTML = versionsUI.formatVersionDateValue(date,month,year);
+		$('field_hidden_updated_timestamp').value = timestamp;
 		$('editDateCalendar').setStyle({top:'-10000px'});
 		setTimeout("$('editDateCalendar').setStyle({top:'0'});",100)
 	},
