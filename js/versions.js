@@ -189,6 +189,8 @@ versions = {
 			$('scroll-cutoff').hide();
 			$('no-versions-holder').show();
 		}
+		
+		versionsUI.table.scroll.constrainer.reapplyConstraint();
 
 		if (!Shimmer.loaded) {
 			var theTable = $$('#box_versions div#versions_table_container')[0];
