@@ -15,7 +15,8 @@ if (isset($_POST['host']) && isset($_POST['user']) && isset($_POST['pass']) && i
 	if ($Shimmer->database['connected']) {
 		$Shimmer->setup();
 		if ($Shimmer->table->testTables()) {
-			if ( save_db_details($host,$user,$pass,$db) ) {
+			$saveResult = save_db_details($host,$user,$pass,$db);
+			if ($saveResult['worked']) {
 				if ($Shimmer->table->createCoreTables()) {
 					$Shimmer->tempFolder();
 					$Shimmer->pref->save('lastVersion', '0');
@@ -46,7 +47,11 @@ if (isset($_POST['host']) && isset($_POST['user']) && isset($_POST['pass']) && i
 		<div id="content">
 			<?php
 				if ($attemptedSave) {
-					echo '<div class="message error">The database details were incorrect.</div>';
+					if (isset($saveResult) && isset($saveResult['error'])) {
+						echo '<div class="message error">' . $saveResult['error'] . '</div>';
+					} else {
+						echo '<div class="message error">The database details were incorrect.</div>';
+					}
 				} else {
 					echo '<div class="message">To get started, enter your database details.</div>';
 				}
@@ -89,6 +94,8 @@ if (isset($_POST['host']) && isset($_POST['user']) && isset($_POST['pass']) && i
 </html>
 <?php
 function save_db_details($host,$user,$pass,$db) {
+	$return = array();
+	
 	$phpString = "<?php";
 	$phpString .= "\nif (!defined('Shimmer')) header('Location:/');";
 	$phpString .= "\n$" . "shimmer_host='"	. $host	. "';";
@@ -97,12 +104,18 @@ function save_db_details($host,$user,$pass,$db) {
 	$phpString .= "\n$" . "shimmer_db='"	. $db	. "';";
 	$phpString .= "\n?>";
 	
-	$fh = @fopen('db_details.php', 'w');
-	if ($fh) {
-		fwrite($fh, $phpString);
-		fclose($fh);
-		return true;
+	if (!is_writable('db_details.php')) @chmod('db_details.php', 646);
+	
+	if (is_writable('db_details.php')) {
+		$fh = @fopen('db_details.php', 'w');
+		if ($fh) {
+			fwrite($fh, $phpString);
+			fclose($fh);
+			$return['worked'] = true;
+		}
 	}
-	return false;
+	
+	if (!isset($return['worked'])) $return['error'] = 'Could not save your database details. Please make sure <em>db_details.php</em> is writable.';
+	return $return;
 }
 ?>
