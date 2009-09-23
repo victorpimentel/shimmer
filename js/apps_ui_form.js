@@ -354,7 +354,8 @@ appsUI.form = {
 									appsUI.form.versionImporter.isUpdating = false;
 								})
 							});
-						}
+						},
+						timeout: 1800
 					});
 				});
 			});
