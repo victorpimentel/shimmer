@@ -1096,7 +1096,8 @@ appsUI.form = {
 						} else if (theCreateResponse.nameused) {
 							notify.update('That app name is already in use', 5);
 						}
-					}
+					},
+					timeout: 1800
 				});
 			}
 		},
@@ -1143,7 +1144,8 @@ appsUI.form = {
 						} else if (theCreateResponse.nameused) {
 							notify.update('That app name is already in use', 5);
 						}
-					}
+					},
+					timeout: 1800
 				});
 			}
 		}
