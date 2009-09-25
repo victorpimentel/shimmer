@@ -25,7 +25,7 @@ graph = {
 			container.removeClassName('nodata');
 		}
 		
-		if (graphData.dataSets.length>0 && maxValue>5) {
+		if (graphData.dataSets.length>0 && maxValue>=5) {
 			
 			var firstOffset = 8;
 			var graphHTML = "";
