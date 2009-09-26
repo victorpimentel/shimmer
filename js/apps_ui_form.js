@@ -206,7 +206,7 @@ appsUI.form = {
 			for (var i=0; i < graphs.length; i++) {
 				if (appsUI.form.sparkleGraphs && appsUI.form.sparkleGraphs.indexOf(graphs[i].id)<0) {
 					var theGraphID = (graphs[i].id ? graphs[i].id : false);
-					code += appsUI.form.graphs.showNewGraphWithDetails(graphs[i].name,graphs[i].type,false,params,graphs[i].parameter,graphs[i].values,true,theGraphID);
+					code += appsUI.form.graphs.showNewGraphWithDetails(graphs[i].name,graphs[i].type,false,params,graphs[i].key,graphs[i].values,true,theGraphID);
 				}
 			};
 		}
