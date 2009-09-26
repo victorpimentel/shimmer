@@ -17,7 +17,6 @@ calendar = {
 		newDate.setFullYear(year);
 		newDate.setMonth(month);
 		newDate.setDate(day);
-		console.log(newDate);
 		return newDate;
 	},
 	
