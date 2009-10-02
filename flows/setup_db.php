@@ -49,6 +49,8 @@ if (isset($_POST['host']) && isset($_POST['user']) && isset($_POST['pass']) && i
 				if ($attemptedSave) {
 					if (isset($saveResult) && isset($saveResult['error'])) {
 						echo '<div class="message error">' . $saveResult['error'] . '</div>';
+					} else if (isset($Shimmer) && $Shimmer->database['connected']==true) {
+						echo '<div class="message error">Database details were correct, but could not create tables.</div>';
 					} else {
 						echo '<div class="message error">The database details were incorrect.</div>';
 					}
