@@ -7,7 +7,7 @@ INSTALLATION AND SETUP
 ------------------------------------------------
 
 --- Step 1 ---
-Ready the User Guide, available at http://shimmerapp.com. It contains information on key concepts which will make using Shimmer much easier later on.
+Read the User Guide, available at http://shimmerapp.com. It contains information on key concepts which will make using Shimmer much easier later on.
 
 --- Step 2 ---
 Upload Shimmer to your server. FTP everything included in the Shimmer download to a folder named 'shimmer' on your server.
