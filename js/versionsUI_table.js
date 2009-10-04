@@ -36,6 +36,7 @@ versionsUI.table = {
 						// If the mouse is above or below the vertical container boundaries, set to 0% or 100% respectively
 						versionsUI.table.scroll.slider.setTop((eY < boxTop) ? 0 : (boxHeight - versionsUI.table.scroll.slider.height()));
 					}
+					moveEvent.stop();
 				});
 				document.observe('mouseup', function(upEvent) {
 					versionsUI.table.scroll.tracker.start = 0;
@@ -55,6 +56,7 @@ versionsUI.table = {
 				});
 				
 				// Return false to prevent text selection
+				downEvent.stop();
 				return false;
 			});
 			versionsUI.table.scroll.components.barcontainer.observe('click', function(clickEvent) {
