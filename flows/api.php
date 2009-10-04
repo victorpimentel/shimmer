@@ -78,6 +78,19 @@ if ( isset($appName) ) {
 					}
 					$resp['versions'] = $returnVersions;
 				}
+			} else if ($method == "application.list") {
+				$returnedApplications = array();
+				foreach ($Shimmer->apps->list as $app) {
+					$currentApplication = array(
+						'name'        => $app['name'],
+						'variant'     => $app['variant'],
+						'displayName' => $app['name'] . ($app['variant'] ? ': ' . $app['variant'] : ''),
+						'id'          => $app['id']
+					);
+					array_push($returnedApplications, $currentApplication);
+				}
+				$resp['applications'] = $returnedApplications;
+				$resp['ok'] = true;
 			} else $resp['reason'] = "No method supplied";
 		} else $resp['reason'] = "Could not open table";
 	} else $resp['reason'] = "App does not exist";
@@ -91,6 +104,43 @@ $callback = $_GET['callback'];
 if ($callback) {
 	header('Content-Type: application/javascript');
 	echo $callback . "(" . json_encode($resp) . ");";
+} else if (isset($_GET['xml'])) {
+	header('Content-Type: text/xml');
+	$exp = simplexml_load_string("<shimmer></shimmer>");
+	$exp->addAttribute("version", $Shimmer->version);
+	$exp->addAttribute("generated", time());
+	$exp->addAttribute("ok", $resp['ok']?1:0);
+	
+	if ($method == "version.info") {
+		$versionsNode = $exp->addChild("versions");
+		foreach ($resp['versions'] as $version) {
+			$versionNode = $versionsNode->addChild("version");
+			if (isset($version['version']))   $versionNode->addAttribute("version",   $version['version']);
+			if (isset($version['build']))     $versionNode->addAttribute("build",     $version['build']);
+			if (isset($version['size']))      $versionNode->addAttribute("size",      $version['size']);
+			if (isset($version['downloads'])) $versionNode->addAttribute("downloads", $version['downloads']);
+			if (isset($version['signature'])) $versionNode->addAttribute("signature", $version['signature']);
+			
+			// Insert the release notes as CDATA if present
+			if (isset($version['notes'])) {
+				$expNotes = $versionNode->addChild("notes");
+				$node     = dom_import_simplexml($expNotes);
+				$no       = $node->ownerDocument;
+				$node->appendChild($no->createCDATASection($version['notes']));
+			}
+		}
+	} else if ($method == "application.list") {
+		$appsNode = $exp->addChild("apps");
+		foreach ($resp['applications'] as $app) {
+			$appNode = $appsNode->addChild("app");
+			$appNode->addAttribute("name",        $app['name']);
+			$appNode->addAttribute("variant",     $app['variant']);
+			$appNode->addAttribute("displayName", $app['displayName']);
+			$appNode->addAttribute("id",          $app['id']);
+		}
+	}
+	
+	echo $exp->asXML();
 } else {
 	header('Content-Type: application/json');
 	echo json_encode($resp);
