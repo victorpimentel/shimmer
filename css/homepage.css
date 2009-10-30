@@ -514,7 +514,7 @@ div#scroll-cutoff div#scroll-bar {
 	-webkit-transition: opacity .5s;
 }
 
-div#versions_container:hover div#scroll-cutoff div#scroll-bar {
+div#versions_container:hover div#scroll-cutoff div#scroll-bar, div#scroll-cutoff div#scroll-bar.dragging {
 	opacity:1;
 }
 

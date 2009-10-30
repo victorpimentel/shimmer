@@ -19,6 +19,7 @@ versionsUI.table = {
 			versionsUI.table.scroll.components.wheelRegion   = $('versions_content');
 
 			versionsUI.table.scroll.components.slider.observe('mousedown', function(downEvent) {
+				versionsUI.table.scroll.components.barcontainer.addClassName('dragging');
 				versionsUI.table.scroll.tracker.start = versionsUI.table.scroll.topOffset() + downEvent.pointerY();
 				document.observe('mousemove', function(moveEvent) {
 					var eY        = moveEvent.pointerY();
@@ -39,6 +40,7 @@ versionsUI.table = {
 					moveEvent.stop();
 				});
 				document.observe('mouseup', function(upEvent) {
+					versionsUI.table.scroll.components.barcontainer.removeClassName('dragging');
 					versionsUI.table.scroll.tracker.start = 0;
 					document.stopObserving('mousemove');
 					document.stopObserving('mouseup');
