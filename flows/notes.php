@@ -4,6 +4,15 @@ if (isset($_GET['loudandclear'])) {
 	echo 'LOUDANDCLEAR';
 	exit();
 }
+
+// Check if a cache exists first, to save a few DB calls
+include_once('cachemanager.php');
+if (CacheManager::printCacheForCurrentHash()) {
+	echo "<!-- pulled from cache -->";
+	exit();
+}
+
+// If we get to here, there is no cache
 $appName    = $_GET['appName'];
 $appVariant = $_GET['appVariant'];
 if (!isset($appVariant)) $appVariant = "";
@@ -50,6 +59,9 @@ if ( isset($appName) ) {
 				if ($versions && count($versions)>0) {
 
 					header('Content-type: text/html');
+					
+					// Start output buffering, so we can cache the response we are about to create
+					ob_start();
 
 					$headerTemplate = $themeTree->layout->header;
 					$headerTemplate = str_replace("<<APP_NAME>>",$appName,$headerTemplate);
@@ -78,6 +90,13 @@ if ( isset($appName) ) {
 					$footerTemplate = str_replace("<<APP_NAME>>",$appName,$footerTemplate);
 					$footerTemplate = str_replace('\t',"\t",$footerTemplate);
 					echo "\n" . trim($footerTemplate);
+					
+					// Print, disable and cache the buffer
+					$buffer = ob_get_contents();
+					ob_end_clean();
+					echo $buffer;
+					CacheManager::storeCacheForCurrentHash($buffer);
+					
 
 				} else if ( $versions && sizeof($versions)==0 ) {
 					$nodataTemplate = $themeTree->layout->nodata;
