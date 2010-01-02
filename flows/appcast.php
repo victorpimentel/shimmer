@@ -10,7 +10,7 @@ if ( isset($appName) ) {
 	if ($app) {
 		// Check if a cache exists first, to save a few DB calls
 		include_once('cachemanager.php');
-		if (!CacheManager::printCacheForCurrentHash()) {
+		if (!CacheManager::printCacheForCurrentHash('application/rss+xml')) {
 			$versionLimit = $_GET['limit'];
 			$minVersion   = $_GET['appVersion'];
 		

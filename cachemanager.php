@@ -19,7 +19,8 @@ class CacheManager {
 	
 	// Checks for a file named $hash in the /caches directory
 	function cacheExistsForHash($hash) {
-		return (file_exists('caches/' . $hash));
+		$fileLocation = 'caches/' . $hash;
+		return (file_exists($fileLocation) && time()-filemtime($fileLocation) < 60*60);
 	}
 	
 	// Convenience method
@@ -35,9 +36,10 @@ class CacheManager {
 	}
 	
 	// Prints the cache if it exists, otherwise returns false
-	function printCacheForCurrentHash() {
+	function printCacheForCurrentHash($contentType = false) {
 		$currentHash = CacheManager::requestHash();
 		if ($currentHash && CacheManager::cacheExistsForHash($currentHash)) {
+			if ($contentType) header('Content-type: ' . $contentType);
 			readfile('caches/' . $currentHash);
 			return true;
 		}

@@ -7,7 +7,7 @@ if (isset($_GET['loudandclear'])) {
 
 // Check if a cache exists first, to save a few DB calls
 include_once('cachemanager.php');
-if (CacheManager::printCacheForCurrentHash()) {
+if (CacheManager::printCacheForCurrentHash('text/html')) {
 	echo "<!-- pulled from cache -->";
 	exit();
 }
